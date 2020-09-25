@@ -24,4 +24,5 @@ During the game, there are several powerups that make surviving for survivors a 
 Things such as "Slime Trap", "Leap tool", "Invisibily wand" and more.
 
 ## Development
-This game plugin is currently under development.
+This game plugin is currently under development by GaagjesCraft Network Team (GCNT).
+There's not yet a release date.
