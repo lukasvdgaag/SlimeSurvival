@@ -1,0 +1,10 @@
+displayName:
+slimeSpawn:
+lobbySpawn:
+spectatorSpawn:
+minPlayers: 4
+enabled: false
+signs: []
+waitingSpawns: []
+enableModeVoting: true
+defaultMode: NORMAL # Could be NORMAL or FREEZE

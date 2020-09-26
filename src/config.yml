@@ -1,0 +1,5 @@
+lobbySpawn:
+waitingLobbyTimer: 15
+timeBeforeSelectingSlimes: 5
+startingTimer: 10
+gameTimer:

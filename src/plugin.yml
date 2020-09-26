@@ -1,0 +1,16 @@
+name: SlimeSurvival
+website: https://gaagjescraft.net/
+main: me.gaagjescraft.network.team.slimesurvival.SlimeSurvival
+version: 1.0.0
+description: SlimeSurvival (mini)game
+author: GaagjesCraft Network Team (GCNT)
+
+commands:
+  ssa:
+    usage: /ssa [args]
+    description: SlimeSurvival Arena setup command
+  slimesurvival:
+    usage: /slimesurvival [args]
+    description: Main SlimeSurvival command
+    aliases:
+      - ss
