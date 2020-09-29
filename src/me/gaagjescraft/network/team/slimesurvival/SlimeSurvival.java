@@ -4,8 +4,14 @@ import me.gaagjescraft.network.team.slimesurvival.commands.arenas.ArenaCmdManage
 import me.gaagjescraft.network.team.slimesurvival.commands.general.GeneralCmdManager;
 import me.gaagjescraft.network.team.slimesurvival.files.Config;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
+import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
+import me.gaagjescraft.network.team.slimesurvival.handlers.InGameHandler;
 import me.gaagjescraft.network.team.slimesurvival.handlers.SpawnRemovalHandler;
+import me.gaagjescraft.network.team.slimesurvival.managers.SlimeThrowerManager;
+import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
+import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -15,10 +21,22 @@ import java.util.Objects;
 
 public class SlimeSurvival extends JavaPlugin {
     private static SlimeSurvival inst;
+    private static ItemsManager itemsManager;
+    private static SlimeThrowerManager slimeThrowerManager;
     private List<SlimeArena> arenas;
     private Config config;
 
-    public static SlimeSurvival get() { return inst; }
+    public static SlimeSurvival get() {
+        return inst;
+    }
+
+    public static ItemsManager getIM() {
+        return itemsManager;
+    }
+
+    public static SlimeThrowerManager getSTM() {
+        return slimeThrowerManager;
+    }
 
     public static SlimeArena getArena(String name) {
         for (SlimeArena a : get().getArenas()) {
@@ -29,7 +47,20 @@ public class SlimeSurvival extends JavaPlugin {
         return null;
     }
 
-    public static Config getCfg() { return get().config; }
+    public static SlimePlayer getSlimePlayer(Player player) {
+        for (SlimeArena a : get().getArenas()) {
+            for (SlimePlayer sp : a.getGamePlayers()) {
+                if (sp.getPlayer().equals(player)) {
+                    return sp;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static Config getCfg() {
+        return get().config;
+    }
 
     @Override
     public void onEnable() {
@@ -42,6 +73,8 @@ public class SlimeSurvival extends JavaPlugin {
         reloadConfig();
 
         config = new Config();
+        itemsManager = new ItemsManager();
+        slimeThrowerManager = new SlimeThrowerManager();
 
         loadArenas();
 
@@ -53,10 +86,18 @@ public class SlimeSurvival extends JavaPlugin {
         getCommand("slimesurvival").setExecutor(new GeneralCmdManager());
 
         Bukkit.getPluginManager().registerEvents(new SpawnRemovalHandler(), this);
+        Bukkit.getPluginManager().registerEvents(new InGameHandler(), this);
     }
 
     @Override
     public void onDisable() {
+        for (SlimeArena arena : getArenas()) {
+            if (arena != null && arena.getAllPlayers() != null) {
+                for (SlimePlayer player : arena.getAllPlayers()) {
+                    arena.leave(player);
+                }
+            }
+        }
 
     }
 
@@ -70,7 +111,12 @@ public class SlimeSurvival extends JavaPlugin {
         if (folder.exists() && folder.isDirectory() && folder.listFiles() != null) {
             for (File arenaFile : Objects.requireNonNull(folder.listFiles())) {
                 if (arenaFile.getName().endsWith(".yml")) {
-                    arenas.add(new SlimeArena(arenaFile.getName().replace(".yml", "")));
+                    SlimeArena arena = new SlimeArena(arenaFile.getName().replace(".yml", ""));
+                    arenas.add(arena);
+
+                    if (SlimeUtils.isArenaValid(arena) == 0 && arena.isEnabled()) {
+                        arena.start();
+                    }
                 }
             }
         }

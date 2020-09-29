@@ -1,6 +1,7 @@
 package me.gaagjescraft.network.team.slimesurvival.utils;
 
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
+import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -31,6 +32,36 @@ public class SlimeUtils {
             return false;
         }
         return true;
+    }
+
+    public static int isArenaValid(SlimeArena arena) {
+        // 0 = valid
+        // 1 = slime spawn is not set
+        // 2 = lobby spawn is not set
+        // 3 = spectator spawn is not set
+        // 4 = not enough waiting spawns
+        // 5 = min players too low
+        // 6 = arena is in edit mode
+        if (arena.getSlimeSpawn() == null) {
+            return 1;
+        }
+        else if (arena.getLobbySpawn() == null) {
+            return 2;
+        }
+        else if (arena.getSpectatorSpawn() == null && SlimeSurvival.getCfg().isSpectateEnabled()) {
+            return 3;
+        }
+        else if (arena.getWaitingSpawns().size() < 2) {
+            return 4;
+        }
+        else if (arena.getMinPlayers() < 2) {
+            return 5;
+        }
+        else if (arena.isEditing()) {
+            return 6;
+        }
+
+        return 0;
     }
 
 }

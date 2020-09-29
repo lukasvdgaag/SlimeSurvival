@@ -13,23 +13,14 @@ public class SpawnRemovalHandler implements Listener {
     @EventHandler
     public void onSpawnRemoval(BlockBreakEvent e) {
         SlimeArena arena = SlimeSurvival.getArena(e.getPlayer().getWorld().getName());
-        if (arena == null) {
-            e.getPlayer().sendMessage("arena is null");
-            return;
-        } else if (!arena.isEditing()) {
-            e.getPlayer().sendMessage("arena is not in edit mode");
-            return;
-        }
+        if (arena == null || !arena.isEditing()) return;
 
-        e.getPlayer().sendMessage("waitingspawns size: " + arena.getWaitingSpawns().size());
 
         Loc current = Loc.fromLocation(e.getBlock().getLocation()).shortify();
-        e.getPlayer().sendMessage("current block: " + current.getWorld() + ", " + current.getX() + ", " + current.getY() + ", " + current.getZ());
 
 
         for (int i=0;i<arena.getWaitingSpawns().size();i++) {
             Loc loc = arena.getWaitingSpawns().get(i);
-            e.getPlayer().sendMessage("waitingspawn loc: " + loc.getWorld() + ", " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ());
             if (loc.shortify().matches(current)) {
                 arena.removeWaitingSpawn(loc);
                 e.getPlayer().sendMessage(ChatColor.RED + "Successfully removed waiting spawn #" + (i+1) + " from arena " + arena.getName());

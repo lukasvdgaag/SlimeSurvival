@@ -11,6 +11,8 @@ public class Config {
     private int startingTimer;
     private int gameTimer;
 
+    private boolean spectateEnabled;
+
 
     public Config() {
         load();
@@ -22,6 +24,7 @@ public class Config {
         this.timeBeforeSelectingSlimes = SlimeSurvival.get().getConfig().getInt("timeBeforeSelectingSlimes");
         this.startingTimer = SlimeSurvival.get().getConfig().getInt("startingTimer");
         this.gameTimer = SlimeSurvival.get().getConfig().getInt("gameTimer");
+        this.spectateEnabled = SlimeSurvival.get().getConfig().getBoolean("enableSpectate");
     }
 
     public void save() {
@@ -30,6 +33,7 @@ public class Config {
         SlimeSurvival.get().getConfig().set("timeBeforeSelectingSlimes", timeBeforeSelectingSlimes);
         SlimeSurvival.get().getConfig().set("startingTimer", startingTimer);
         SlimeSurvival.get().getConfig().set("gameTimer", gameTimer);
+        SlimeSurvival.get().getConfig().set("enableSpectate", spectateEnabled);
 
         SlimeSurvival.get().saveConfig();
     }
@@ -56,5 +60,9 @@ public class Config {
 
     public int getGameTimer() {
         return gameTimer;
+    }
+
+    public boolean isSpectateEnabled() {
+        return spectateEnabled;
     }
 }

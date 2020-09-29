@@ -22,6 +22,8 @@ public class ArenaCmdManager implements CommandExecutor  {
         mapcmds.add(new AddSpawnArenaCmd());
         mapcmds.add(new EditArenaCmd());
         mapcmds.add(new SetMinArenaCmd());
+        mapcmds.add(new EnableArenacmd());
+        mapcmds.add(new InfoArenaCmd());
     }
 
     public static List<BaseCmd> getCommands() { return mcm.mapcmds; }

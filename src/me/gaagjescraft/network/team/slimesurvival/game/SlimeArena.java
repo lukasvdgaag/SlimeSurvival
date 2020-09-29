@@ -1,9 +1,11 @@
 package me.gaagjescraft.network.team.slimesurvival.game;
 
+import com.google.common.collect.Lists;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaState;
 import me.gaagjescraft.network.team.slimesurvival.enums.TeamType;
+import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
 import me.gaagjescraft.network.team.slimesurvival.utils.Loc;
 import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
 import org.bukkit.*;
@@ -11,7 +13,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +43,7 @@ public class SlimeArena {
     private boolean enableModeVoting;
     private List<Loc> joinSigns;
     private boolean isEditing;
+    private boolean forceStart;
 
     public SlimeArena(String name) {
         this.name = name;
@@ -48,6 +54,7 @@ public class SlimeArena {
         this.state = ArenaState.DISABLED;
         this.timer = SlimeSurvival.getCfg().getWaitingLobbyTimer();
         this.isEditing = false;
+        this.forceStart = false;
 
         loadArenaData();
         saveArenaData();
@@ -71,7 +78,7 @@ public class SlimeArena {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to create the arena folder");
             return false;
         }
-        File file = new File(directory, name+".yml");
+        File file = new File(directory, name + ".yml");
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -134,7 +141,7 @@ public class SlimeArena {
     }
 
     private void loadArenaData() {
-        File mapFile = new File(SlimeSurvival.get().getDataFolder() + File.separator, name + ".yml");
+        File mapFile = new File(SlimeSurvival.get().getDataFolder() + File.separator + "maps", name + ".yml");
         if (!mapFile.exists()) return;
 
         SlimeUtils.copyDefaults(mapFile, "arenaFile.yml");
@@ -158,6 +165,13 @@ public class SlimeArena {
             Loc loc = Loc.fromString(spawn);
             if (loc != null && loc.getLocation() != null) waitingSpawns.add(loc);
         }
+
+        int validStatus = SlimeUtils.isArenaValid(this);
+        if (validStatus != 0) {
+            enabled = false;
+            state = ArenaState.DISABLED;
+        }
+
     }
 
     public void prepareForEditing() {
@@ -183,7 +197,7 @@ public class SlimeArena {
         conf.set("minPlayers", minPlayers);
         conf.set("enabled", enabled);
         conf.set("enableModeVoting", enableModeVoting);
-        conf.set("defaultMode", defaultMode);
+        conf.set("defaultMode", defaultMode.name());
 
         List<String> signs = new ArrayList<>();
         for (Loc loc : joinSigns) {
@@ -210,7 +224,8 @@ public class SlimeArena {
                 leave(p);
             }
         }
-
+        this.gamePlayers = new ArrayList<>();
+        setState(ArenaState.RESTARTING);
     }
 
     public void leave(SlimePlayer player) {
@@ -218,7 +233,7 @@ public class SlimeArena {
         if (player.getPlayer() != null) {
             player.getPlayer().getPlayer().teleport(SlimeSurvival.getCfg().getLobbySpawn().getLocation());
         }
-
+        player.repair();
     }
 
     public String getName() {
@@ -285,8 +300,15 @@ public class SlimeArena {
         saveArenaData();
     }
 
+    public List<SlimePlayer> getAllPlayers() { return gamePlayers; }
+
     public List<SlimePlayer> getGamePlayers() {
-        return gamePlayers;
+        List<SlimePlayer> sps = Lists.newArrayList();
+        for (SlimePlayer a : gamePlayers) {
+            if (a.getTeam() != TeamType.SPECTATOR)
+                sps.add(a);
+        }
+        return sps;
     }
 
     public List<SlimePlayer> getGamePlayers(TeamType teamType) {
@@ -330,6 +352,7 @@ public class SlimeArena {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+        saveArenaData();
     }
 
     public boolean isEnableModeVoting() {
@@ -350,9 +373,141 @@ public class SlimeArena {
         saveArenaData();
     }
 
-    public boolean isEditing() { return this.isEditing; }
+    public boolean isEditing() {
+        return this.isEditing;
+    }
 
     public void setEditing(boolean editing) {
         this.isEditing = editing;
+    }
+
+    public void start() {
+        if (state == ArenaState.DISABLED || state == ArenaState.RESTARTING) {
+            for (Player p : Bukkit.getWorld(name).getPlayers()) {
+                p.teleport(SlimeSurvival.getCfg().getLobbySpawn().getLocation());
+            }
+            saveWorld();
+            waitStart();
+        }
+    }
+
+    private void startSlimeSelection() {
+        List<SlimePlayer> sps = getGamePlayers();
+        setState(ArenaState.STARTING);
+        for (int i=0;i<sps.size();i++) {
+            Player p = sps.get(i).getPlayer();
+            p.closeInventory();
+            p.getInventory().clear();
+
+            // teleporting player to waiting spawn, then setting their look direction to slime spawn
+            p.teleport(waitingSpawns.get(i).getLocation().add(0.5,0,0.5));
+            Vector v = slimeSpawn.getLocation().clone().subtract(p.getEyeLocation()).toVector();
+            Location l = p.getLocation().setDirection(v);
+            p.teleport(l);
+
+            p.setGameMode(GameMode.SURVIVAL);
+            p.sendTitle("§a§lSlime Selection", "§7Starting the slime selection...", 20,60,20);
+
+        }
+    }
+
+    private void waitStart() {
+        setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
+        setState(ArenaState.WAITING);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (getState() != ArenaState.WAITING) cancel();
+
+                if (getGamePlayers().size() >= getMinPlayers() || forceStart) {
+                    // min player amount is reached, now starting countdown
+                    if (getTimer() <= 0) {
+                        cancel();
+                        startSlimeSelection();
+                    }
+                    else {
+                        if (getTimer() <= 5) {
+                            for (SlimePlayer sp : getGamePlayers()) {
+                                Player p = sp.getPlayer();
+                                p.sendTitle("§a§l" + timer + " seconds",
+                                        "§7before selecting slimes", 0, 20, 0);
+                                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Starting slime selection in &2" + timer));
+                                p.playSound(p.getLocation(),Sound.BLOCK_NOTE_PLING,1f,0.5f + (5-timer));
+                            }
+                        }
+                    }
+                    int timeLeft = getTimer() == 0 ? getTimer() : getTimer()-1;
+                    setTimer(timeLeft);
+                }
+                else {
+                    setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
+                }
+            }
+        }.runTaskTimer(SlimeSurvival.get(),0L,20L);
+    }
+
+    public void broadcastMessage(String message) {
+        for (SlimePlayer sp : getAllPlayers()) {
+            sp.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        }
+    }
+
+    public boolean addPlayer(Player player) {
+        if (SlimeSurvival.getSlimePlayer(player) != null) {
+            // player is in a game
+            return false;
+        }
+
+        if (getState() == ArenaState.WAITING || getState() == ArenaState.STARTING) {
+            if (gamePlayers.size() < waitingSpawns.size()) {
+                SlimePlayer sp = new SlimePlayer(player, this);
+                gamePlayers.add(sp);
+
+                if (getState() == ArenaState.WAITING) {
+                    // teleporting to waiting lobby
+
+                    player.teleport(getLobbySpawn().getLocation());
+                    sp.prepareInventoryForGame();
+                }
+                // todo add starting state teleportation
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void prepareForTeam(SlimePlayer player, TeamType type) {
+        player.setTeam(type);
+        Player p = player.getPlayer();
+        p.getInventory().clear();
+
+        if (type == TeamType.SLIME) {
+            p.getInventory().setHelmet(ItemsManager.ARMOR_SLIME_HEAD);
+            p.getInventory().setChestplate(ItemsManager.ARMOR_SLIME_CHESTPLATE);
+            p.getInventory().setLeggings(ItemsManager.ARMOR_SLIME_LEGGINGS);
+            p.getInventory().setBoots(ItemsManager.ARMOR_SLIME_BOOTS);
+
+            p.getInventory().setItem(0, ItemsManager.ITEM_SLIME_THROWER);
+            p.getInventory().setItem(1, ItemsManager.ITEM_SLIME_BOMBER);
+        } else if (type == TeamType.SURVIVOR) {
+            p.getInventory().setHelmet(ItemsManager.ARMOR_SURVIVOR_HELMET);
+            p.getInventory().setChestplate(ItemsManager.ARMOR_SURVIVOR_CHESTPLATE);
+            p.getInventory().setLeggings(ItemsManager.ARMOR_SURVIVOR_LEGGINGS);
+            p.getInventory().setBoots(ItemsManager.ARMOR_SURVIVOR_BOOTS);
+        }
+
+    }
+
+    public void setTimer(int timer) {
+        this.timer = timer;
+    }
+
+    public boolean isForceStart() {
+        return forceStart;
+    }
+
+    public void setForceStart(boolean forceStart) {
+        this.forceStart = forceStart;
     }
 }

@@ -5,6 +5,8 @@ public enum ArenaState {
     PLAYING,
     WAITING,
     STARTING,
+    ENDING,
+    RESTARTING,
     DISABLED
 
 }

@@ -16,6 +16,9 @@ public class GeneralCmdManager implements CommandExecutor {
     public GeneralCmdManager() {
         mcm = this;
         mapcmds.add(new LobbySpawnCmd());
+        mapcmds.add(new JoinCmd());
+        mapcmds.add(new LeaveCmd());
+        mapcmds.add(new StartCmd());
     }
 
     public static List<BaseCmd> getCommands() { return mcm.mapcmds; }
