@@ -4,6 +4,7 @@ import me.gaagjescraft.network.team.slimesurvival.NMS.v1_12_R1.NMSHandler;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
 import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
+import me.gaagjescraft.network.team.slimesurvival.utils.Loc;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,8 +28,24 @@ public class SlimeThrowerManager {
         return new EulerAngle(x,0,z);
     }
 
+    public void spinTick (Entity entity, float toAdd) {
+        float endYawTick = entity.getLocation().getYaw() + toAdd;
+        if (endYawTick > 360) endYawTick -= 360.0f;
+        entity.getLocation().setYaw(endYawTick);
+    }
+
+    public float getClockwiseDifference(float startYaw, float endYaw) {
+        float toSpinDeg = 0;
+        if (startYaw < endYaw) {
+            toSpinDeg = endYaw - startYaw;
+        } else {
+            toSpinDeg = endYaw + 360 - startYaw;
+        }
+        return toSpinDeg;
+    }
+
     public void targetSelectorSlimePlayer(ArmorStand as, Player player) {
-        Vector v = player.getLocation().clone().subtract(as.getEyeLocation()).toVector();
+        Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation().add(0.5,1,0.5).subtract(as.getEyeLocation()).toVector();
         Location l = as.getLocation().clone().setDirection(v);
 
         float yaw = l.getYaw(); // the yaw end location it should point to
@@ -38,13 +55,12 @@ public class SlimeThrowerManager {
         player.sendMessage("Current yaw: " + as.getLocation().getYaw() + "\n" +
                 "Target yaw: " + yaw);
 
-        float targetFloat;
-        if (yaw > as.getLocation().getYaw()) targetFloat = yaw-as.getLocation().getYaw();
-        else targetFloat = as.getLocation().getYaw()+yaw;
-
-        int ticksToRun = (int) targetFloat / 9; // add 9 yaw points per tick (to make it smooth)
+        float floatDifference = getClockwiseDifference(as.getLocation().getYaw(),yaw); // add 9 yaw points per tick (to make it smooth)
+        int ticksToRun = 60;
+        float yawPerTick = floatDifference / ticksToRun;
         //ticksToRun+=40; // add a standard two rounds to the spin
-        float yawPerTick = targetFloat / ticksToRun;
+        //float yawPerTick = targetFloat / ticksToRun;
+
 
         int finalTicksToRun = ticksToRun;
         new BukkitRunnable() {
@@ -56,11 +72,13 @@ public class SlimeThrowerManager {
                     this.cancel();
                 }
 
-                Location newLoc = as.getLocation();
-                newLoc.setYaw(newLoc.getYaw()+yawPerTick);
+               /* Location newLoc = as.getLocation();
+                newLoc.setYaw(newLoc.getYaw()+yawPerTick);*/
+
+                spinTick(as, yawPerTick);
 
                 //as.setHeadPose(angleToEulerAngle(deg));
-                as.teleport(newLoc);
+               // as.teleport(newLoc);
                 i[0]++;
             }
         }.runTaskTimer(SlimeSurvival.get(),0,1);
