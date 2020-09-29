@@ -14,6 +14,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
+import java.util.logging.Level;
+
 public class SlimeThrowerManager {
 
     private static ArmorStand armorStand = null;
@@ -30,8 +32,9 @@ public class SlimeThrowerManager {
 
     public void spinTick (Entity entity, float toAdd) {
         float endYawTick = entity.getLocation().getYaw() + toAdd;
-        if (endYawTick > 360) endYawTick -= 360.0f;
-        entity.getLocation().setYaw(endYawTick);
+        Location loc = entity.getLocation().clone();
+        loc.setYaw(endYawTick%360);
+        entity.teleport(loc);
     }
 
     public float getClockwiseDifference(float startYaw, float endYaw) {
@@ -45,7 +48,7 @@ public class SlimeThrowerManager {
     }
 
     public void targetSelectorSlimePlayer(ArmorStand as, Player player) {
-        Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation().add(0.5,1,0.5).subtract(as.getEyeLocation()).toVector();
+        Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation().add(0.5,0,0.5).subtract(as.getEyeLocation()).toVector();
         Location l = as.getLocation().clone().setDirection(v);
 
         float yaw = l.getYaw(); // the yaw end location it should point to
@@ -56,30 +59,34 @@ public class SlimeThrowerManager {
                 "Target yaw: " + yaw);
 
         float floatDifference = getClockwiseDifference(as.getLocation().getYaw(),yaw); // add 9 yaw points per tick (to make it smooth)
-        int ticksToRun = 60;
-        float yawPerTick = floatDifference / ticksToRun;
-        //ticksToRun+=40; // add a standard two rounds to the spin
-        //float yawPerTick = targetFloat / ticksToRun;
 
+        Bukkit.getLogger().log(Level.WARNING, as.getLocation().getYaw() + "");
 
+        int floatD = ((int) (floatDifference/5)*5);
+        int ticksToRun = (int) (floatD / 3);
+        float yawPerTick = 3f;
         int finalTicksToRun = ticksToRun;
+        float finalYawPerTick = yawPerTick;
+
         new BukkitRunnable() {
             @Override
             public void run() {
                 //as.getLocation().getYaw()-targetFloat;
-
-                if (i[0] >= finalTicksToRun) {
+                i[0]++;
+                if (i[0] >= finalTicksToRun-1 || as.getLocation().getYaw() == yaw) {
                     this.cancel();
+                    return;
                 }
 
                /* Location newLoc = as.getLocation();
                 newLoc.setYaw(newLoc.getYaw()+yawPerTick);*/
 
-                spinTick(as, yawPerTick);
+                spinTick(as, finalYawPerTick);
+                Bukkit.getLogger().log(Level.WARNING, as.getLocation().getYaw() + "");
 
                 //as.setHeadPose(angleToEulerAngle(deg));
                // as.teleport(newLoc);
-                i[0]++;
+
             }
         }.runTaskTimer(SlimeSurvival.get(),0,1);
     }
@@ -87,7 +94,8 @@ public class SlimeThrowerManager {
     public void spawnSelectorSlime(Player player) {
 //        if (arena.getState() != ArenaState.STARTING) return;
         //Location spawn = arena.getSlimeSpawn().getLocation().add(0.5,-2,0.5);
-        Location spawn = player.getLocation().add(0,-2,0);
+        Location spawn = Loc.fromLocation(player.getLocation()).shortify().getLocation();
+        spawn.add(0.5,-2,0.5);
         spawn.setYaw(0);
         spawn.setPitch(0);
         boolean fromMemory = false;
@@ -169,5 +177,12 @@ public class SlimeThrowerManager {
         return null;
     }
 
+    public void throwSlimeball(Player player) {
+        Vector target = player.getEyeLocation().toVector();
+        Vector current = armorStand.getLocation().toVector();
+
+
+
+    }
 
 }
