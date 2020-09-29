@@ -32,19 +32,18 @@ public class SlimeThrowerManager {
 
     public void spinTick (Entity entity, float toAdd) {
         float endYawTick = entity.getLocation().getYaw() + toAdd;
+        if (endYawTick > 360) endYawTick -= 360.0f;
         Location loc = entity.getLocation().clone();
-        loc.setYaw(endYawTick%360);
+        loc.setYaw(endYawTick);
         entity.teleport(loc);
     }
 
     public float getClockwiseDifference(float startYaw, float endYaw) {
-        float toSpinDeg = 0;
         if (startYaw < endYaw) {
-            toSpinDeg = endYaw - startYaw;
+            return endYaw - startYaw;
         } else {
-            toSpinDeg = endYaw + 360 - startYaw;
+            return endYaw + 360 - startYaw;
         }
-        return toSpinDeg;
     }
 
     public void targetSelectorSlimePlayer(ArmorStand as, Player player) {
@@ -58,35 +57,31 @@ public class SlimeThrowerManager {
         player.sendMessage("Current yaw: " + as.getLocation().getYaw() + "\n" +
                 "Target yaw: " + yaw);
 
-        float floatDifference = getClockwiseDifference(as.getLocation().getYaw(),yaw); // add 9 yaw points per tick (to make it smooth)
+        float floatDifference = getClockwiseDifference(as.getLocation().getYaw(), yaw); // add 9 yaw points per tick (to make it smooth)
 
-        Bukkit.getLogger().log(Level.WARNING, as.getLocation().getYaw() + "");
+        //Bukkit.getLogger().log(Level.WARNING, as.getLocation().getYaw() + "");
 
-        int floatD = ((int) (floatDifference/5)*5);
-        int ticksToRun = (int) (floatD / 3);
-        float yawPerTick = 3f;
-        int finalTicksToRun = ticksToRun;
+        float yawPerTick = 6f;
+        float ticksToRun = floatDifference / yawPerTick;
+        int finalTicksToRun = (int) ticksToRun;
+        float partialTickRemainder = ticksToRun - finalTicksToRun;
         float finalYawPerTick = yawPerTick;
+
+        player.sendMessage(partialTickRemainder + "  " + ticksToRun);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                //as.getLocation().getYaw()-targetFloat;
-                i[0]++;
-                if (i[0] >= finalTicksToRun-1 || as.getLocation().getYaw() == yaw) {
+                if (i[0] >= ticksToRun){
+                    player.sendMessage("FINAL POS: " + as.getLocation().getYaw() + "");
                     this.cancel();
                     return;
+                } else if (i[0] >= finalTicksToRun) {
+                    spinTick(as, finalYawPerTick * partialTickRemainder);
+                } else {
+                    spinTick(as, finalYawPerTick);
                 }
-
-               /* Location newLoc = as.getLocation();
-                newLoc.setYaw(newLoc.getYaw()+yawPerTick);*/
-
-                spinTick(as, finalYawPerTick);
-                Bukkit.getLogger().log(Level.WARNING, as.getLocation().getYaw() + "");
-
-                //as.setHeadPose(angleToEulerAngle(deg));
-               // as.teleport(newLoc);
-
+                i[0]++;
             }
         }.runTaskTimer(SlimeSurvival.get(),0,1);
     }
@@ -128,23 +123,23 @@ public class SlimeThrowerManager {
                     targetSelectorSlimePlayer(as, player);
                     player.sendMessage(ChatColor.DARK_GREEN + "Now targeting your location...");
                     this.cancel();
+                } else {
+                    Location newLoc = as.getLocation();
+                    newLoc.add(0,(0.55/40),0);
+
+                    if (newLoc.getYaw() >= 0)
+                        newLoc.setYaw(newLoc.getYaw()+9);
+                    else
+                        newLoc.setY(-newLoc.getYaw()+9);
+
+                    //as.setHeadPose(angleToEulerAngle(deg));
+
+
+                    as.teleport(newLoc);
+
+
+                    i[0]++;
                 }
-
-                Location newLoc = as.getLocation();
-                newLoc.add(0,(0.55/40),0);
-
-                if (newLoc.getYaw() >= 0)
-                    newLoc.setYaw(newLoc.getYaw()+9);
-                else
-                    newLoc.setY(-newLoc.getYaw()+9);
-
-                //as.setHeadPose(angleToEulerAngle(deg));
-
-
-                as.teleport(newLoc);
-
-
-                i[0]++;
             }
         }.runTaskTimer(SlimeSurvival.get(),0,1);
     }
