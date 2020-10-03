@@ -9,7 +9,7 @@ import org.bukkit.ChatColor;
 public class StartCmd extends BaseCmd {
 
     public StartCmd() {
-        type = "slimesurival";
+        type = "slimesurvival";
         forcePlayer = true;
         cmdName = "start";
         argLength = 2;
@@ -21,7 +21,7 @@ public class StartCmd extends BaseCmd {
         SlimeArena arena = SlimeSurvival.getArena(arenaName);
 
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "There is no arena with that name.");
+            SlimeSurvival.getMessages().getArenaNotExisting().send(sender);
             return true;
         }
 

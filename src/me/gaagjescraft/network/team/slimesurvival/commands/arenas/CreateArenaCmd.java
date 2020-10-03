@@ -8,7 +8,7 @@ import org.bukkit.*;
 public class CreateArenaCmd extends BaseCmd {
 
     public CreateArenaCmd() {
-        type = "ssa";
+        type = "slimearena";
         forcePlayer = true;
         cmdName = "create";
         alias = new String[]{"c"};
@@ -18,17 +18,17 @@ public class CreateArenaCmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-            sender.sendMessage(ChatColor.RED + "You must have set the general lobby spawn in order to perform this command.");
+            SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
         String worldName = args[1];
         if (SlimeSurvival.getArena(worldName) != null) {
-            sender.sendMessage(ChatColor.RED + "There already is an arena with that name.");
+            SlimeSurvival.getMessages().getArenaAlreadyExists().send(sender);
             return true;
         }
 
-        sender.sendMessage(ChatColor.GRAY + "Now generating the arena world...");
+        SlimeSurvival.getMessages().getGeneratingWorld().send(sender);
         boolean result = SlimeArena.createNewArena(worldName);
         if (!result) {
             sender.sendMessage(ChatColor.RED + "Something went wrong whilst creating the arena.");
@@ -36,13 +36,11 @@ public class CreateArenaCmd extends BaseCmd {
             return true;
         }
 
-        sender.sendMessage(ChatColor.GREEN + "Arena world successfully generated! Teleporting...");
+        SlimeSurvival.getMessages().getWorldGenerated().send(sender);
         World w = Bukkit.getWorld(worldName);
         w.getBlockAt(0, 75, 0).setType(Material.STONE);
         player.teleport(new Location(w, 0, 76, 0));
         player.setGameMode(GameMode.CREATIVE);
-
-
         return true;
     }
 }

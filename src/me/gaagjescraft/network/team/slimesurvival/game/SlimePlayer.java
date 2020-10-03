@@ -25,9 +25,18 @@ public class SlimePlayer {
         this.player = player;
         this.arena = arena;
         this.gameKills = 0;
+        this.team = null;
 
         inv = Bukkit.createInventory(null, InventoryType.PLAYER, player.getName());
         storeInventory();
+    }
+
+    public void setAssignedWaitingSpawn(Loc waitingSpawn) {
+        this.assignedWaitingSpawn = waitingSpawn;
+    }
+
+    public Loc getWaitingSpawn() {
+        return assignedWaitingSpawn;
     }
 
     public Player getPlayer() {

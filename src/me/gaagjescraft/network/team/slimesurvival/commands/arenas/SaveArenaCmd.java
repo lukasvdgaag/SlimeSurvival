@@ -4,14 +4,13 @@ import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class SaveArenaCmd extends BaseCmd {
 
     public SaveArenaCmd() {
-        type = "ssa";
-        forcePlayer = true;
+        type = "slimearena";
+        forcePlayer = false;
         cmdName = "save";
         argLength = 2;
     }
@@ -19,14 +18,14 @@ public class SaveArenaCmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-            sender.sendMessage(ChatColor.RED + "You must have set the general lobby spawn in order to perform this command.");
+            SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
         String worldName = args[1];
         SlimeArena arena = SlimeSurvival.getArena(worldName);
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "There is no arena with that name.");
+            SlimeSurvival.getMessages().getArenaNotExisting().send(sender);
             return true;
         }
 
@@ -38,7 +37,7 @@ public class SaveArenaCmd extends BaseCmd {
         arena.saveArenaData();
         arena.setEditing(false);
 
-        sender.sendMessage(ChatColor.GREEN + "Successfully saved the arena " + arena.getName());
+        SlimeSurvival.getMessages().getArenaSaved().addVar("%arena%", arena.getName()).send(sender);
         return true;
     }
 }

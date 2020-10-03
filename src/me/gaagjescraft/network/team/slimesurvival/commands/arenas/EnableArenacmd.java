@@ -5,13 +5,12 @@ import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaState;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
-import org.bukkit.ChatColor;
 
 public class EnableArenacmd extends BaseCmd {
 
     public EnableArenacmd() {
-        type = "ssa";
-        forcePlayer = true;
+        type = "slimearena";
+        forcePlayer = false;
         cmdName = "enable";
         argLength = 2;
     }
@@ -19,19 +18,19 @@ public class EnableArenacmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-            sender.sendMessage(ChatColor.RED + "You must have set the general lobby spawn in order to perform this command.");
+            SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
         String worldName = args[1];
         SlimeArena arena = SlimeSurvival.getArena(worldName);
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "There is no arena with that name.");
+            SlimeSurvival.getMessages().getArenaNotExisting().send(sender);
             return true;
         }
 
         if (arena.getState() != ArenaState.DISABLED) {
-            sender.sendMessage(ChatColor.RED + "That arena is already enabled.");
+            SlimeSurvival.getMessages().getArenaAlreadyEnabled().send(sender);
             return true;
         }
 
@@ -43,27 +42,26 @@ public class EnableArenacmd extends BaseCmd {
         if (validStatus == 0) {
             arena.setEnabled(true);
             arena.start();
-            sender.sendMessage(ChatColor.GREEN + "Successfully enabled the arena " + arena.getName());
+            SlimeSurvival.getMessages().getArenaEnabled().addVar("%arena%", arena.getName()).send(sender);
         }
 
         else if (validStatus == 1) {
-            sender.sendMessage(ChatColor.RED + "Slime spawn is not set! Set it with \"/ssa spawn slime\".");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("invalidSlimeSpawn").send(sender);
         }
         else if (validStatus == 2) {
-            sender.sendMessage(ChatColor.RED + "Game lobby spawn is not set! Set it with \"/ssa spawn lobby\".");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("invalidLobbySpawn").send(sender);
         }
         else if (validStatus == 3) {
-            sender.sendMessage(ChatColor.RED + "Spectator spawn is not set! Set it with \"/ssa spawn spectator\".\n" +
-                    "If you want to disable spectate mode, set the option 'enableSpectate' in the config.yml to 'false'.");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("invalidSpectatorSpawn").send(sender);
         }
         else if (validStatus == 4) {
-            sender.sendMessage(ChatColor.RED + "Not enough player spawns found! You must have at least 2 player spawns.");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("notEnoughPlayerSpawns").send(sender);
         }
         else if (validStatus == 5) {
-            sender.sendMessage(ChatColor.RED + "Min players is too low! The minimum amount of player must be 2 or greater.");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("invalidMinPlayers").send(sender);
         }
         else if (validStatus == 6) {
-            sender.sendMessage(ChatColor.RED + "Arena is in edit mode! Save the arena first using \"/ssa save " + arena.getName() + "\".");
+            SlimeSurvival.getMessages().getArenaMisconfiguration("inEditMode").addVar("%arena%", arena.getName()).send(sender);
         }
         return true;
     }

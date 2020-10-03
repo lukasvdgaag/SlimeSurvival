@@ -4,13 +4,12 @@ import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
-import org.bukkit.ChatColor;
 
 public class SetMinArenaCmd extends BaseCmd {
 
     public SetMinArenaCmd() {
-        type = "ssa";
-        forcePlayer = true;
+        type = "slimearena";
+        forcePlayer = false;
         cmdName = "min";
         alias = new String[]{"minplayers", "setmin", "setminplayers"};
         argLength = 2;
@@ -19,29 +18,32 @@ public class SetMinArenaCmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-sender.sendMessage(ChatColor.RED + "You must have set the general lobby spawn in order to perform this command.");
+SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
         SlimeArena arena = SlimeSurvival.getArena(player.getWorld().getName());
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "The world you're currently in does not match any arenas.");
+            SlimeSurvival.getMessages().getCurrentWorldMatchesNoArena().send(sender);
             return true;
         }
 
         if (!SlimeUtils.isInt(args[1])) {
-            sender.sendMessage(ChatColor.RED + "You must specify a valid number greater or equal to 2.");
+            SlimeSurvival.getMessages().getInvalidMinPlayersNumber().send(sender);
             return true;
         }
         int amount = Integer.parseInt(args[1]);
 
         if (amount < 2) {
-            sender.sendMessage(ChatColor.RED + "You must specify a number greater or equal to 2.");
+            SlimeSurvival.getMessages().getInvalidMinPlayersNumber().send(sender);
             return true;
         }
 
         arena.setMinPlayers(amount);
-        sender.sendMessage(ChatColor.GREEN + "The minimum amount of players to start the game is set to " + amount + " for the arena " + arena.getName());
+        SlimeSurvival.getMessages().getMinPlayersSet()
+                .addVar("%arena%", arena.getName())
+                .addVar("%amount%", amount+"")
+                .send(sender);
         return true;
     }
 }

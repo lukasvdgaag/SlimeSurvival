@@ -1,5 +1,6 @@
 package me.gaagjescraft.network.team.slimesurvival.commands;
 
+import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,7 +25,7 @@ public abstract class BaseCmd {
 
         if (forcePlayer) {
             if (!(s instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "You must be a player to perform this command");
+                SlimeSurvival.getMessages().getMustBePlayer().send(sender);
                 return;
             }
             player = ((Player) s);
@@ -32,13 +33,13 @@ public abstract class BaseCmd {
 
 
         if (!sender.hasPermission("slimesurvival.commands." + type + "." + cmdName)) {
-            sender.sendMessage(ChatColor.RED+"You don't have permission to perform this command");
+            SlimeSurvival.getMessages().getNoCommandPermission().send(sender);
         } else if ((maxArgs == -1 && argLength > arg.length) || (maxArgs!=-1 && arg.length > maxArgs)) {
-            s.sendMessage(ChatColor.DARK_RED + "Wrong usage: " + cmdName);
+            s.sendMessage(ChatColor.DARK_RED + "Wrong usage: " + SlimeSurvival.getMessages().getCommandDescription(type, cmdName).getMessage().get(0));
         } else {
             boolean returnVal = run();
             if (!returnVal) {
-                s.sendMessage(ChatColor.DARK_RED + "Wrong usage: " + cmdName);
+                s.sendMessage(ChatColor.DARK_RED + "Wrong usage: " + SlimeSurvival.getMessages().getCommandDescription(type, cmdName).getMessage().get(0));
             }
         }
     }

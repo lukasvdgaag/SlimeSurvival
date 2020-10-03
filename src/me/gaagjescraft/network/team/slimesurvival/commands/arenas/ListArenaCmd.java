@@ -11,7 +11,7 @@ import java.util.List;
 public class ListArenaCmd extends BaseCmd {
 
     public ListArenaCmd() {
-        type = "ssa";
+        type = "slimearena";
         forcePlayer = false;
         cmdName = "list";
         alias = new String[]{"arenas"};
@@ -22,10 +22,10 @@ public class ListArenaCmd extends BaseCmd {
     public boolean run() {
         List<SlimeArena> arenas = SlimeSurvival.get().getArenas();
 
-        sender.sendMessage(ChatColor.YELLOW + "---------- " + ChatColor.GOLD + "Slime Survival Arenas" + ChatColor.YELLOW + " ----------");
+        SlimeSurvival.getMessages().getArenaListHeader().send(sender);
 
         if (arenas.size() == 0) {
-            sender.sendMessage(ChatColor.RED + "There are no arenas found.");
+            SlimeSurvival.getMessages().getNoArenasFound().send(sender);
             return true;
         }
 
@@ -35,7 +35,7 @@ public class ListArenaCmd extends BaseCmd {
             if (state == ArenaState.PLAYING) a = ChatColor.GREEN + "Playing";
             else if (state == ArenaState.STARTING) a = ChatColor.BLUE + "Starting";
             else if (state == ArenaState.WAITING) a = ChatColor.GREEN + "Waiting";
-            sender.sendMessage(ChatColor.GRAY + arena.getName() + ChatColor.WHITE + " - " + ChatColor.AQUA + arena.getDisplayName() + ChatColor.WHITE + " - " + state);
+            sender.sendMessage(ChatColor.GRAY + arena.getName() + ChatColor.WHITE + " - " + ChatColor.AQUA + arena.getDisplayName() + ChatColor.WHITE + " - " + a);
         }
 
         return true;

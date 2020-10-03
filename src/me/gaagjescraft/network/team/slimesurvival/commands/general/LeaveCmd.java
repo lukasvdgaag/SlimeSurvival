@@ -3,12 +3,11 @@ package me.gaagjescraft.network.team.slimesurvival.commands.general;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
-import org.bukkit.ChatColor;
 
 public class LeaveCmd extends BaseCmd {
 
     public LeaveCmd() {
-        type = "slimesurival";
+        type = "slimesurvival";
         forcePlayer = true;
         cmdName = "leave";
         alias = new String[]{"quit", "exit"};
@@ -20,12 +19,12 @@ public class LeaveCmd extends BaseCmd {
         SlimePlayer sp = SlimeSurvival.getSlimePlayer(player);
 
         if (sp == null) {
-            sender.sendMessage(ChatColor.RED + "You are not in a game.");
+            SlimeSurvival.getMessages().getMustBeInGame().send(sender);
             return true;
         }
 
         sp.getArena().leave(sp);
-        sender.sendMessage(ChatColor.RED + "You left your current game.");
+        SlimeSurvival.getMessages().getLeftGame().send(sender);
         return true;
     }
 

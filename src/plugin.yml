@@ -6,9 +6,12 @@ description: SlimeSurvival (mini)game
 author: GaagjesCraft Network Team (GCNT)
 
 commands:
-  ssa:
-    usage: /ssa [args]
+  slimearena:
+    usage: /slimearena [args]
     description: SlimeSurvival Arena setup command
+    aliases:
+      - ssa
+      - slimesurvivalarena
   slimesurvival:
     usage: /slimesurvival [args]
     description: Main SlimeSurvival command

@@ -1,5 +1,6 @@
 package me.gaagjescraft.network.team.slimesurvival.commands.arenas;
 
+import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,6 +24,7 @@ public class ArenaCmdManager implements CommandExecutor  {
         mapcmds.add(new EditArenaCmd());
         mapcmds.add(new SetMinArenaCmd());
         mapcmds.add(new EnableArenacmd());
+        mapcmds.add(new DisableArenaCmd());
         mapcmds.add(new InfoArenaCmd());
     }
 
@@ -36,14 +38,10 @@ public class ArenaCmdManager implements CommandExecutor  {
     }
 
     private void sendHelp(List<BaseCmd> cmds, CommandSender s) {
-        int count = 0;
+        SlimeSurvival.getMessages().getCommandDescription("slimearena", "header").send(s);
         for (BaseCmd cmd : cmds) {
             if (s.hasPermission("slimesurvival.commands." + cmd.type + "." + cmd.cmdName)) {
-                count++;
-                if (count == 1) {
-                    s.sendMessage(" ");
-                }
-                s.sendMessage("/" + cmd.type + " " + cmd.cmdName);
+                SlimeSurvival.getMessages().getCommandDescription(cmd.type, cmd.cmdName).send(s);
             }
         }
     }

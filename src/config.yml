@@ -2,6 +2,14 @@ lobbySpawn:
 waitingLobbyTimer: 15
 timeBeforeSelectingSlimes: 5
 startingTimer: 10
-gameTimer:
-
+gameTimer: 300
+endTimer: 15
+leadTimer: 8
 enableSpectate: true
+
+signs:
+  disabled: WOOL:14
+  waiting: WOOL:5
+  playing: WOOL:14
+  starting: WOOL:10
+  ending: WOOL:14

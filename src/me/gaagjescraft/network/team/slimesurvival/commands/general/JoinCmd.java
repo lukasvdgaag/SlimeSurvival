@@ -3,12 +3,11 @@ package me.gaagjescraft.network.team.slimesurvival.commands.general;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
-import org.bukkit.ChatColor;
 
 public class JoinCmd extends BaseCmd {
 
     public JoinCmd() {
-        type = "slimesurival";
+        type = "slimesurvival";
         forcePlayer = true;
         cmdName = "join";
         argLength = 2;
@@ -20,17 +19,23 @@ public class JoinCmd extends BaseCmd {
         SlimeArena arena = SlimeSurvival.getArena(arenaName);
 
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "There is no arena with that name.");
+            SlimeSurvival.getMessages().getArenaNotExisting().send(sender);
             return true;
         }
+
+        if (SlimeSurvival.getSlimePlayer(player) != null) {
+            SlimeSurvival.getMessages().getAlreadyInGame().send(player);
+            return true;
+        }
+
 
         boolean added = arena.addPlayer(player);
 
         if (!added) {
-            sender.sendMessage(ChatColor.RED + "Could not join that game at this time.");
+            SlimeSurvival.getMessages().getGameIsFull().send(player);
         }
         else {
-            sender.sendMessage(ChatColor.GRAY + "You joined the game " + arena.getDisplayName());
+            SlimeSurvival.getMessages().getJoinedGame().addVar("%arena%", arena.getDisplayName()).send(player);
         }
 
         return true;

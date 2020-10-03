@@ -4,12 +4,12 @@ import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.utils.Loc;
-import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 
 public class EditArenaCmd extends BaseCmd {
 
     public EditArenaCmd() {
-        type = "ssa";
+        type = "slimearena";
         forcePlayer = true;
         cmdName = "edit";
         argLength = 2;
@@ -18,14 +18,14 @@ public class EditArenaCmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-            sender.sendMessage(ChatColor.RED + "You must have set the general lobby spawn in order to perform this command.");
+            SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
         String worldName = args[1];
         SlimeArena arena = SlimeSurvival.getArena(worldName);
         if (arena == null) {
-            sender.sendMessage(ChatColor.RED + "There is no arena with that name.");
+            SlimeSurvival.getMessages().getArenaNotExisting().send(sender);
             return true;
         }
 
@@ -36,9 +36,9 @@ public class EditArenaCmd extends BaseCmd {
         arena.prepareForEditing();
         arena.setEditing(true);
         player.teleport(teleport.getLocation());
+        player.setGameMode(GameMode.CREATIVE);
 
-
-        sender.sendMessage(ChatColor.GRAY + "You are now editing the arena " + arena.getName());
+        SlimeSurvival.getMessages().getEditingArena().addVar("%arena%", arena.getName()).send(sender);
         return true;
     }
 }

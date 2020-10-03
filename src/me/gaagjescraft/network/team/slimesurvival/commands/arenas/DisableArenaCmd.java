@@ -4,13 +4,12 @@ import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.commands.BaseCmd;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 
-public class InfoArenaCmd extends BaseCmd {
+public class DisableArenaCmd extends BaseCmd {
 
-    public InfoArenaCmd() {
+    public DisableArenaCmd() {
         type = "slimearena";
         forcePlayer = false;
-        cmdName = "info";
-        alias = new String[]{"about"};
+        cmdName = "disable";
         argLength = 2;
     }
 
@@ -28,13 +27,11 @@ public class InfoArenaCmd extends BaseCmd {
             return true;
         }
 
-        SlimeSurvival.getMessages().getArenaInfo()
-                .addVar("%arena%", arena.getName())
-                .addVar("%displayName%", arena.getDisplayName())
-                .addVar("%state%", arena.getState().name())
-                .addVar("%players%", arena.getGamePlayers().size() +"")
-                .addVar("%maxPlayers%", arena.getWaitingSpawns().size()+"")
-                .send(sender);
+        // test if arena is set up properly
+
+        arena.setEnabled(false);
+        arena.stop();
+        SlimeSurvival.getMessages().getArenaDisabled().addVar("%arena%", arena.getName()).send(sender);
         return true;
     }
 }

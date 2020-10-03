@@ -1,12 +1,11 @@
 package me.gaagjescraft.network.team.slimesurvival.handlers;
 
-import com.google.common.collect.Lists;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
+import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaState;
 import me.gaagjescraft.network.team.slimesurvival.enums.TeamType;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
 import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,22 +16,12 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
-
-import java.util.List;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 public class InGameHandler implements Listener {
-
-    private static List<Player> slimeThrowCooldowns = Lists.newArrayList();
-
-    @EventHandler
-    public void onChat(AsyncPlayerChatEvent e) {
-        if (e.getMessage().equals("placeMovingSlime")) {
-            Bukkit.getScheduler().runTask(SlimeSurvival.get(), () -> {
-                SlimeSurvival.getSTM().spawnSelectorSlime(e.getPlayer());
-            });
-        }
-    }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
@@ -64,14 +53,13 @@ public class InGameHandler implements Listener {
             }
             if (e.getItem().equals(ItemsManager.ITEM_VOTE_MODE)) {
                 // open vote menu here
-                SlimeSurvival.getSTM().throwSlime(sp); // todo remove this
             }
         }
 
         if (sp.getArena().getState() == ArenaState.PLAYING) {
-            if (sp.getTeam() == TeamType.SLIME) {
+            if (sp.getTeam() == TeamType.SLIME && sp.getArena().isSlimesReleased()) {
                 if (e.getItem().equals(ItemsManager.ITEM_SLIME_THROWER)) {
-                    SlimeSurvival.getSTM().throwSlime(sp);
+                    sp.getArena().getSlimeThrowerManager().throwSlime(sp);
                 }
                 if (e.getItem().equals(ItemsManager.ITEM_SLIME_BOMBER)) {
                     // bomb a slime
@@ -124,20 +112,28 @@ public class InGameHandler implements Listener {
     @EventHandler
     public void onSlimeCollision(PlayerMoveEvent e) {
         SlimePlayer sp = SlimeSurvival.getSlimePlayer(e.getPlayer());
-        if (sp == null) return;
+        if (sp == null || sp.getArena().getState() != ArenaState.PLAYING) return;
 
-        //if (sp.getArena().getState() == ArenaState.PLAYING && sp.getTeam() == TeamType.SURVIVOR) {
-        // player is survivor
-        if (sp.getTeam() == TeamType.SLIME) return;
 
         for (Entity entity : e.getPlayer().getNearbyEntities(0.5, 0.5, 0.5)) {
-            SlimePlayer owner = SlimeSurvival.getSTM().getSlimeOwner(entity);
-            if (owner != null /*&& owner.getTeam() == TeamType.SLIME*/) {
-                entity.remove();
-                owner.addKill();
-                // todo add mode check
-                sp.getArena().prepareForTeam(sp, TeamType.SLIME);
-                e.getPlayer().sendMessage(ChatColor.DARK_GREEN + "You are now a slime!");
+            SlimePlayer owner = sp.getArena().getSlimeThrowerManager().getSlimeOwner(entity);
+            if (owner != null) {
+
+                if (owner != sp) {
+                    if (sp.getTeam() == TeamType.SURVIVOR && sp.getArena().getMode() == ArenaMode.NORMAL) {
+                        entity.remove();
+                        owner.addKill();
+                        // todo add mode check
+                        sp.getArena().prepareForTeam(sp, TeamType.SLIME);
+                        e.getPlayer().sendMessage(ChatColor.DARK_GREEN + "You are now a slime!");
+                        owner.getArena().giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                    }
+                }
+                else if (entity.getTicksLived()>5){
+                    // player is the slime owner
+                    entity.remove();
+                    sp.getArena().giveItem(sp, 0, ItemsManager.ITEM_SLIME_THROWER);
+                }
             }
         }
 
