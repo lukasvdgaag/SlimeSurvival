@@ -179,6 +179,7 @@ public class SlimeThrowerManager {
 
                                 if (nearPlayer.getTeam() == TeamType.SURVIVOR) {
                                     slime.remove();
+                                    this.cancel();
                                     if (arena.getMode() == ArenaMode.NORMAL) {
                                         owner.addKill();
                                         arena.prepareForTeam(nearPlayer, TeamType.SLIME);
@@ -197,7 +198,7 @@ public class SlimeThrowerManager {
 
                                     arena.checkForWin();
                                 }
-                            } else if (entity.getTicksLived() > 5) {
+                            } else if (entity.getTicksLived() > 10) {
                                 // player is the slime owner
                                 slime.remove();
                                 arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);

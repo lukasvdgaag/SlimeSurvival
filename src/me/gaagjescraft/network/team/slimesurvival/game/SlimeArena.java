@@ -302,6 +302,7 @@ public class SlimeArena {
         if (getState() == ArenaState.ENDING) return;
 
         setState(ArenaState.ENDING);
+        Bukkit.getLogger().severe("#endMatch: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getEndTimer());
         removeEntities();
 
@@ -323,6 +324,7 @@ public class SlimeArena {
                     return;
                 }
 
+                Bukkit.getLogger().severe("#endMatch: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -576,6 +578,7 @@ public class SlimeArena {
     public void startMatch() {
         getSlimeThrowerManager().removeSelectorSlime();
         setState(ArenaState.PLAYING);
+        Bukkit.getLogger().severe("#startMatch: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getGameTimer());
         // making all non-slime players survivors
         for (SlimePlayer sp : getGamePlayers()) {
@@ -592,9 +595,10 @@ public class SlimeArena {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (getTimer() <= 0) {
+                if (getTimer() <= 0 || getState() != ArenaState.PLAYING) {
                     this.cancel();
                     endMatch();
+                    return;
                 }
                 if (getTimer() == SlimeSurvival.getCfg().getGameTimer() - SlimeSurvival.getCfg().getLeadTimer()) {
                     // lead time for survivors is over, releasing the slimes...
@@ -610,6 +614,7 @@ public class SlimeArena {
                     setSlimesReleased(true);
                 }
 
+                Bukkit.getLogger().severe("#startMatch: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -645,6 +650,7 @@ public class SlimeArena {
             }
         }
 
+        Bukkit.getLogger().severe("#startSlimeSelection: start (no scheduler)");
         setTimer(10); // todo make this configurable
         new BukkitRunnable() {
             @Override
@@ -666,6 +672,7 @@ public class SlimeArena {
                         SlimeSurvival.getMessages().getStartSlimeSelectionCountdownTitle().addVar("%time%",getTimer()+"").sendTitle(sp.getPlayer(),5,10,5);
                     }
                 }
+                Bukkit.getLogger().severe("#startSlimeSelection: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -673,6 +680,9 @@ public class SlimeArena {
     }
 
     private void waitStart() {
+        if (getState() == ArenaState.WAITING) return;
+
+        Bukkit.getLogger().severe("#waitStart: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
         setState(ArenaState.WAITING);
         new BukkitRunnable() {
@@ -680,11 +690,13 @@ public class SlimeArena {
             public void run() {
                 if (getState() != ArenaState.WAITING) this.cancel();
 
-                if (getGamePlayers().size() >= getMinPlayers() || forceStart) {
+                if (getGamePlayers().size() >= getMinPlayers() || isForceStart()) {
                     // min player amount is reached, now starting countdown
                     if (getTimer() <= 0) {
+                        Bukkit.getLogger().severe("now cancelling the waitstart scheduler");
                         this.cancel();
                         startSlimeSelection();
+                        return;
                     } else {
                         if (getTimer() == 10 || getTimer() == 30) {
                             for (SlimePlayer sp : getGamePlayers()) {
@@ -700,9 +712,10 @@ public class SlimeArena {
                             }
                         }
                     }
-                    int timeLeft = getTimer() == 0 ? getTimer() : getTimer() - 1;
-                    setTimer(timeLeft);
+                    Bukkit.getLogger().severe("#waitStart: scheduler, 20 ticks");
+                    setTimer(getTimer()-1);
                 } else {
+                    Bukkit.getLogger().severe("#waitStart: scheduler, 20 ticks (1)");
                     setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
                 }
             }
@@ -726,7 +739,9 @@ public class SlimeArena {
                 } else {
                     for (Loc loc : getWaitingSpawns()) {
                         if (getPlayerFromWaitingSpawn(loc) == null) {
-                            player.teleport(loc.getLocation());
+                            sp.setAssignedWaitingSpawn(loc);
+                            player.teleport(loc.getLocation().add(0.5,0,0.5));
+                            getWaitingCageManager().spawnCage(loc);
                             sp.prepareInventoryForGame();
                             break;
                         }
@@ -875,7 +890,7 @@ public class SlimeArena {
 
     public SlimePlayer getPlayerFromWaitingSpawn(Loc loc) {
         for (SlimePlayer sp : gamePlayers) {
-            if (sp.getWaitingSpawn().equals(loc)) {
+            if (sp.getWaitingSpawn() != null && sp.getWaitingSpawn().equals(loc)) {
                 return sp;
             }
         }

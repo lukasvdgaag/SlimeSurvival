@@ -18,7 +18,7 @@ public class SetMinArenaCmd extends BaseCmd {
     @Override
     public boolean run() {
         if (SlimeSurvival.getCfg().getLobbySpawn() == null) {
-SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
+            SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
             return true;
         }
 
@@ -42,7 +42,7 @@ SlimeSurvival.getMessages().getMainLobbyMustBeSet().send(sender);
         arena.setMinPlayers(amount);
         SlimeSurvival.getMessages().getMinPlayersSet()
                 .addVar("%arena%", arena.getName())
-                .addVar("%amount%", amount+"")
+                .addVar("%amount%", amount + "")
                 .send(sender);
         return true;
     }

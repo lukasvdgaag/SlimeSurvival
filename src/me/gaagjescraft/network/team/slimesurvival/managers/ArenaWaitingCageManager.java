@@ -18,6 +18,7 @@ public class ArenaWaitingCageManager {
     }
 
     public void removeCage(Loc loc) {
+        if (loc == null) return;
         List<Location> locs = Lists.newArrayList();
         Location loc1 = loc.getLocation();
 
