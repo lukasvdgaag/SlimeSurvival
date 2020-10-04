@@ -51,12 +51,16 @@ public class SlimeArena {
     private SignManager arenaSignManager;
     private int calculatedSlimeTeamPlayers;
     private boolean slimesReleased;
+    private List<SlimePlayer> winners;
+    private TeamType winningTeam;
+    private boolean hasAwarderWinners;
 
     public SlimeArena(String name) {
         this.name = name;
         this.waitingSpawns = new ArrayList<>();
         this.gamePlayers = new ArrayList<>();
         this.joinSigns = new ArrayList<>();
+        this.winners = new ArrayList<>();
         this.displayName = ChatColor.AQUA + name;
         this.state = ArenaState.DISABLED;
         this.mode = ArenaMode.NORMAL;
@@ -65,6 +69,8 @@ public class SlimeArena {
         this.arenaWaitingCageManager = new ArenaWaitingCageManager(this);
         this.arenaSignManager = new SignManager(this);
         this.slimesReleased = false;
+        this.winningTeam = null;
+        this.hasAwarderWinners = false;
 
         createArenaFile();
         createWorld();
@@ -87,11 +93,15 @@ public class SlimeArena {
     private void resetArenaData() {
         this.waitingSpawns = new ArrayList<>();
         this.gamePlayers = new ArrayList<>();
+        this.winners = new ArrayList<>();
         this.displayName = ChatColor.AQUA + name;
         this.state = ArenaState.DISABLED;
         this.mode = ArenaMode.NORMAL;
         this.timer = SlimeSurvival.getCfg().getWaitingLobbyTimer();
+        this.calculatedSlimeTeamPlayers = 0;
         this.slimesReleased = false;
+        this.winningTeam = null;
+        this.hasAwarderWinners = false;
         for (Loc l : waitingSpawns) {
             getWaitingCageManager().removeCage(l);
         }
@@ -289,15 +299,19 @@ public class SlimeArena {
     }
 
     public void endMatch() {
+        if (getState() == ArenaState.ENDING) return;
+
         setState(ArenaState.ENDING);
         setTimer(SlimeSurvival.getCfg().getEndTimer());
         removeEntities();
 
+        checkForWin();
+        awardWinners();
+
         // todo add slime exploding
-        // todo add inventory clearing
         for (SlimePlayer sp : getGamePlayers()) {
             sp.getPlayer().getInventory().clear();
-            SlimeSurvival.getMessages().getGameEnded().addVar("%time%", getTimer()+"").send(sp.getPlayer());
+            //SlimeSurvival.getMessages().getGameEnded().addVar("%time%", getTimer()+"").send(sp.getPlayer());
         }
 
         new BukkitRunnable() {
@@ -319,8 +333,34 @@ public class SlimeArena {
         if (state == ArenaState.STARTING) {
             getWaitingCageManager().removeCage(player.getWaitingSpawn());
         }
-
         gamePlayers.remove(player);
+
+        if (state == ArenaState.PLAYING && getGamePlayers().size() > 1) {
+            if (player.getTeam() == TeamType.SLIME && player.isMainSlime()) {
+                boolean changed = false;
+                for (SlimePlayer sp : getGamePlayers(TeamType.SLIME)) {
+                    sp.setMainSlime(true);
+                    changed = true;
+                    // todo make configurable
+                    for (SlimePlayer sp1 : getGamePlayers()) {
+                        sp1.getPlayer().sendMessage("§2Main slime left. " + sp1.getPlayer().getName() + " is now the main slime!");
+                    }
+                    break;
+                }
+
+                if (!changed) {
+                    for (SlimePlayer sp : getGamePlayers(TeamType.SURVIVOR)) {
+                        sp.getPlayer().sendMessage("§2Main slime left. " + sp.getPlayer().getName() + " is now the main slime!");
+                        prepareForTeam(sp, TeamType.SLIME);
+                        sp.setMainSlime(true);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+
         getSignManager().updateAll();
         if (player.getPlayer() != null) {
             player.getPlayer().getPlayer().teleport(SlimeSurvival.getCfg().getLobbySpawn().getLocation());
@@ -410,7 +450,9 @@ public class SlimeArena {
         this.timer = timer;
 
         for (SlimePlayer sp : getGamePlayers()) {
-            sp.getPlayer().setLevel(timer);
+            if (getState() == ArenaState.PLAYING && timer <= SlimeSurvival.getCfg().getGameTimer() - SlimeSurvival.getCfg().getLeadTimer()) {
+                sp.getPlayer().setLevel(timer);
+            }
             sp.updateScoreboard();
         }
     }
@@ -559,6 +601,11 @@ public class SlimeArena {
                     for (SlimePlayer sp : getGamePlayers(TeamType.SLIME)) {
                         getWaitingCageManager().removeCage(sp.getWaitingSpawn());
                         SlimeSurvival.getMessages().getReleaseSlimesTitle().sendTitle(sp.getPlayer(), 10, 40, 10);
+                        SlimeSurvival.getMessages().getReleaseSlimesForSurvivors().send(sp.getPlayer());
+                    }
+                    for (SlimePlayer sp : getGamePlayers(TeamType.SURVIVOR)) {
+                        SlimeSurvival.getMessages().getReleaseSlimesForSurvivors().send(sp.getPlayer());
+                        SlimeSurvival.getMessages().getReleaseSlimesForSurvivorsTitle().sendTitle(sp.getPlayer(),10,40,10);
                     }
                     setSlimesReleased(true);
                 }
@@ -642,6 +689,7 @@ public class SlimeArena {
                         if (getTimer() == 10 || getTimer() == 30) {
                             for (SlimePlayer sp : getGamePlayers()) {
                                 SlimeSurvival.getMessages().getCountdownSlimeSelectionTeleportation().addVar("%time%", getTimer()+"").send(sp.getPlayer());
+                                SlimeSurvival.getMessages().getCountdownSlimeSelectionTeleportationTitle().addVar("%time%", getTimer()+"").sendTitle(sp.getPlayer(),5,10,5);
                             }
                         }
                         if (getTimer() <= 5) {
@@ -691,6 +739,81 @@ public class SlimeArena {
         return false;
     }
 
+    public void awardWinners() {
+        // todo make these message configurable
+        // todo add win commands (maybe additionsplus integration)
+        // todo add player stats
+        if (hasAwarderWinners) return;
+
+        for (SlimePlayer loser : getGamePlayers()) {
+            if (winningTeam == TeamType.SURVIVOR) {
+                loser.getPlayer().sendTitle("§7§lSURVIVORS WON!", "", 10, 60, 10);
+                loser.getPlayer().sendMessage("§7Survivors have won the game!");
+            }
+            else if (winningTeam == TeamType.SLIME){
+                loser.getPlayer().sendTitle("§2§lSLIMES WON!", "", 10, 60, 10);
+                loser.getPlayer().sendMessage("§2Slimes have won the game!");
+            }
+
+            if (!winners.contains(loser)) {
+                // loser is an actual loser
+                // todo add loss here
+            }
+
+        }
+        hasAwarderWinners = true;
+    }
+
+    public void checkForWin() {
+        winners = new ArrayList<>();
+        if (getMode() == ArenaMode.NORMAL) {
+            if (getGamePlayers(TeamType.SURVIVOR).isEmpty()) {
+                // slimes have compromised all survivors - they won
+                // only main slime wins
+                SlimePlayer mainSlime = getMainSlime();
+                if (mainSlime != null) {
+                    winners.add(mainSlime);
+                }
+                winningTeam = TeamType.SLIME;
+                if (getState() != ArenaState.ENDING) endMatch();
+            }
+        }
+        else if (getMode() == ArenaMode.CLASSIC) {
+            // everyone except the slime won
+            winners = getGamePlayers(TeamType.SURVIVOR);
+            winningTeam = TeamType.SURVIVOR;
+        }
+        else if (getMode() == ArenaMode.FREEZE) {
+            List<SlimePlayer> winningSurvivors = Lists.newArrayList();
+            List<SlimePlayer> winningSlimes = getGamePlayers(TeamType.SLIME);
+            for (SlimePlayer sp : getGamePlayers(TeamType.SURVIVOR)) {
+                if (!sp.isCompromised()) {
+                    winningSurvivors.add(sp);
+                }
+            }
+            if (winningSurvivors.isEmpty()) {
+                // slimes have compromised all survivors - they won
+                winners = winningSlimes;
+                winningTeam = TeamType.SLIME;
+                if (getState() != ArenaState.ENDING) endMatch();
+            }
+            else {
+                // there are still remaining survivors - they won
+                winners = winningSurvivors;
+                winningTeam = TeamType.SURVIVOR;
+            }
+        }
+    }
+
+    public SlimePlayer getMainSlime() {
+        for (SlimePlayer sp : getGamePlayers(TeamType.SLIME)) {
+            if (sp.isMainSlime()) {
+                return sp;
+            }
+        }
+        return null;
+    }
+
     public void giveItem(SlimePlayer sp, int slot, ItemStack item) {
         sp.getPlayer().getInventory().setItem(slot, item);
     }
@@ -709,8 +832,10 @@ public class SlimeArena {
         p.getInventory().clear();
 
         if (type == TeamType.SLIME) {
-            for (SlimePlayer sp : getGamePlayers()) {
-                SlimeSurvival.getMessages().getPlayerIsTheSlime().addVar("%player%", player.getPlayer().getName()).send(sp.getPlayer());
+            if (getState() == ArenaState.STARTING) {
+                for (SlimePlayer sp : getGamePlayers()) {
+                    SlimeSurvival.getMessages().getPlayerIsTheSlime().addVar("%player%", player.getPlayer().getName()).send(sp.getPlayer());
+                }
             }
             p.getInventory().setHelmet(ItemsManager.ARMOR_SLIME_HEAD);
             p.getInventory().setChestplate(ItemsManager.ARMOR_SLIME_CHESTPLATE);

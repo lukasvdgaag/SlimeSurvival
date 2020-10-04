@@ -157,12 +157,45 @@ public class SlimeThrowerManager {
                         if (owner != null && nearPlayer != null) {
 
                             if (owner != nearPlayer) {
-                                if (nearPlayer.getTeam() == TeamType.SURVIVOR && arena.getMode() == ArenaMode.NORMAL) {
+                                if (arena.getMode() == ArenaMode.NORMAL) {
+                                    for (SlimePlayer sp : arena.getGamePlayers()) {
+                                        SlimeSurvival.getMessages().getPlayerGotSlimed().addVar("%player%", nearPlayer.getPlayer().getName())
+                                                .addVar("%slime%", owner.getPlayer().getName())
+                                                .send(sp.getPlayer());
+                                    }
+                                } else if (arena.getMode() == ArenaMode.FREEZE) {
+                                    for (SlimePlayer sp : arena.getGamePlayers()) {
+                                        SlimeSurvival.getMessages().getPlayerGotParalysed().addVar("%player%", nearPlayer.getPlayer().getName())
+                                                .addVar("%slime%", owner.getPlayer().getName())
+                                                .send(sp.getPlayer());
+                                    }
+                                } else if (arena.getMode() == ArenaMode.CLASSIC) {
+                                    for (SlimePlayer sp : arena.getGamePlayers()) {
+                                        SlimeSurvival.getMessages().getPlayerGotTagged().addVar("%player%", nearPlayer.getPlayer().getName())
+                                                .addVar("%slime%", owner.getPlayer().getName())
+                                                .send(sp.getPlayer());
+                                    }
+                                }
+
+                                if (nearPlayer.getTeam() == TeamType.SURVIVOR) {
                                     slime.remove();
-                                    owner.addKill();
-                                    // todo add mode check
-                                    arena.prepareForTeam(nearPlayer, TeamType.SLIME);
-                                    arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                                    if (arena.getMode() == ArenaMode.NORMAL) {
+                                        owner.addKill();
+                                        arena.prepareForTeam(nearPlayer, TeamType.SLIME);
+                                        arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                                    }
+                                    else if (arena.getMode() == ArenaMode.FREEZE) {
+                                        // todo add freeze nearPlayer here
+                                        owner.addKill();
+                                        nearPlayer.setCompromised(true);
+                                        arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                                    }
+                                    else if (arena.getMode() == ArenaMode.CLASSIC) {
+                                        arena.prepareForTeam(nearPlayer, TeamType.SLIME);
+                                        arena.prepareForTeam(owner, TeamType.SURVIVOR);
+                                    }
+
+                                    arena.checkForWin();
                                 }
                             } else if (entity.getTicksLived() > 5) {
                                 // player is the slime owner
@@ -212,6 +245,9 @@ public class SlimeThrowerManager {
                         as.remove();
                         this.cancel();
                         arena.prepareForTeam(slimePlayer, TeamType.SLIME);
+                        if (arena.getMainSlime() == null) {
+                            slimePlayer.setMainSlime(true);
+                        }
 
                         Bukkit.getScheduler().runTask(SlimeSurvival.get(), ()-> {
                             if (arena.getGamePlayers(TeamType.SLIME).size() < arena.getCalculatedSlimeTeamPlayers()) {

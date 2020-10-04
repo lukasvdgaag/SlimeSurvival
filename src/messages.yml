@@ -27,11 +27,17 @@ signCreated: '&aSign for arena %arena% created!'
 signRemoved: '&cSign of arena %arena% has been removed!'
 mustBeInLobby: '&cYou must be in the main lobby to do this!'
 
+playerParalysed: '&a%player% &ewas paralysed by &2%slime%'
+playerGotSlimed: '&a%player% &ewas turned into a slime by &2%slime%'
+playerGotTagged: '&a%player% &egot tagged by &2%slime% &eand is now the slime'
+releaseSlimesForSurvivors: '&aSlimes have been released'
+
 titles:
   startSlimeSelection: '&a&lSlime Selection\n&7Starting the slime selection...'
   startSlimeSelectionCountdown: '&a&l%time%'
   releaseSurvivors: '&a&lRUN!\n&aDon''t get hit by the slimes!'
   releaseSlimes: '&a&lGO!'
+  releaseSlimesForSurvivors: '\n&aSlimes have been released'
   selectingSlimeAmount: '&aSelecting %amount% slimes...'
   countdownSlimeSelectionTeleportation: '&a%time% seconds\n&7before the game starts'
 

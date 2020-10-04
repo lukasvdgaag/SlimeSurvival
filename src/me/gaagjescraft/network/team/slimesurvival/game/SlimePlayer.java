@@ -26,6 +26,8 @@ public class SlimePlayer {
     private SlimeArena arena;
     private TeamType team;
     private Loc assignedWaitingSpawn;
+    private boolean isCompromised;
+    private boolean isMainSlime;
 
     private Inventory inv;
 
@@ -36,9 +38,27 @@ public class SlimePlayer {
         this.arena = arena;
         this.gameKills = 0;
         this.team = null;
+        this.isCompromised = false;
+        this.isMainSlime = false;
 
         inv = Bukkit.createInventory(null, InventoryType.PLAYER, player.getName());
         storeInventory();
+    }
+
+    public boolean isMainSlime() {
+        return isMainSlime;
+    }
+
+    public void setMainSlime(boolean mainSlime) {
+        isMainSlime = mainSlime;
+    }
+
+    public boolean isCompromised() {
+        return isCompromised;
+    }
+
+    public void setCompromised(boolean compromised) {
+        isCompromised = compromised;
     }
 
     public void setAssignedWaitingSpawn(Loc waitingSpawn) {

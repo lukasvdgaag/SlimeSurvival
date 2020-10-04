@@ -38,6 +38,12 @@ public class Messages {
     private String signRemoved;
     private String mustBeInLobby;
 
+    private String playerGotSlimed;
+    private String playerParalysed;
+    private String playerGotTagged;
+    private String releaseSlimesForSurvivors;
+    private String releaseSlimesForSurvivorsTitle;
+
     private String alreadyInGame;
     private String gameIsFull;
     private String joinedGame;
@@ -100,6 +106,11 @@ public class Messages {
         this.signRemoved = fc.getString("signRemoved");
         this.mustBeInLobby = fc.getString("mustBeInLobby");
 
+        this.playerGotSlimed = fc.getString("playerGotSlimed");
+        this.playerParalysed = fc.getString("playerParalysed");
+        this.playerGotTagged = fc.getString("playerGotTagged");
+        this.releaseSlimesForSurvivors = fc.getString("releaseSlimesForSurvivors");
+
         this.arenaSpawnInUse = fc.getString("arenas.spawnLocationInUse");
         this.invalidSpawnType = fc.getString("arenas.invalidSpawnType");
         this.arenaSpawnSet = fc.getString("arenas.spawnSet");
@@ -127,6 +138,7 @@ public class Messages {
         this.selectingSlimeAmountTitle = fc.getString("titles.selectingSlimeAmount");
         this.startSlimeSelectionCountdownTitle = fc.getString("titles.startSlimeSelectionCountdown");
         this.countdownSlimeSelectionTeleportationTitle = fc.getString("titles.countdownSlimeSelectionTeleportation");
+        this.releaseSlimesForSurvivorsTitle = fc.getString("titles.releaseSlimesForSurvivors");
 
     }
 
@@ -158,6 +170,11 @@ public class Messages {
         fc.set("signRemoved", signRemoved);
         fc.set("mustBeInLobby", mustBeInLobby);
 
+        fc.set("playerGotSlimed", playerGotSlimed);
+        fc.set("playerParalysed", playerParalysed);
+        fc.set("playerGotTagged", playerGotTagged);
+        fc.set("releaseSlimesForSurvivors", releaseSlimesForSurvivors);
+
         fc.set("arenas.spawnLocationInUse", arenaSpawnInUse);
         fc.set("arenas.invalidSpawnType", invalidSpawnType);
         fc.set("arenas.spawnSet", arenaSpawnSet);
@@ -185,6 +202,7 @@ public class Messages {
         fc.set("titles.selectingSlimeAmount", selectingSlimeAmountTitle);
         fc.set("titles.startSlimeSelectionCountdown", startSlimeSelectionCountdownTitle);
         fc.set("titles.countdownSlimeSelectionTeleportation", countdownSlimeSelectionTeleportationTitle);
+        fc.set("titles.releaseSlimesForSurvivors", releaseSlimesForSurvivorsTitle);
 
         try {
             fc.save(file);
@@ -390,6 +408,16 @@ public class Messages {
     public MSG getMustBeInLobby() { return new MSG(mustBeInLobby); }
 
     public MSG getArenaDisabled() { return new MSG(arenaDisabled); }
+
+    public MSG getPlayerGotSlimed() { return new MSG(playerGotSlimed); }
+
+    public MSG getPlayerGotParalysed() { return new MSG(playerParalysed); }
+
+    public MSG getPlayerGotTagged() { return new MSG(playerGotTagged); }
+
+    public MSG getReleaseSlimesForSurvivors() { return new MSG(releaseSlimesForSurvivors); }
+
+    public MSG getReleaseSlimesForSurvivorsTitle() { return new MSG(releaseSlimesForSurvivorsTitle); }
 
     public class MSG {
         List<String> message;
