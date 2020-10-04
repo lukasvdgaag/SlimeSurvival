@@ -232,8 +232,7 @@ public class SlimeThrowerManager {
 
             Vector between = target.subtract(current);
 
-            Item as = (Item) player.getWorld().spawnEntity(armorStand.getLocation().add(0, 2, 0), EntityType.DROPPED_ITEM);
-            as.setItemStack(new ItemStack(Material.SLIME_BALL));
+            Item as = player.getWorld().dropItem(armorStand.getLocation().add(0,2,0), new ItemStack(Material.SLIME_BALL));
             as.setPickupDelay(100);
             as.setInvulnerable(true);
 
