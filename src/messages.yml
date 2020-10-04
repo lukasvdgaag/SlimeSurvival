@@ -56,7 +56,7 @@ arenas:
   alreadyEnabled: '&cThat arena is already enabled!'
   enabled: '&aSuccessfully enabled the arena %arena%!'
   disabled: '&cSuccessfully disabled the arena %arena%!'
-  saved: '&aSuccessfully saved the arena %arena%! If you want it to be playable, make sure to enable the arena with "/slimesurvival save %arena%".'
+  saved: '&aSuccessfully saved the arena %arena%! If you want it to be playable, make sure to enable the arena with "/slimesurvival enable %arena%".'
   noArenasFound: '&cNo arenas were found!'
   displayNameSet: '&aThe display name of arena %arena% has been set to "%displayName%&a"!'
   invalidMinPlayersNumber: '&cYou must enter a valid minimum players amount that is greater or equal to 2.'
@@ -64,7 +64,7 @@ arenas:
   arenaListHeader: '&e---------- &6Slime Survival Arenas &e----------'
   arenaInfo:
     - '&e---------- &6Slime Arena Info &e----------'
-    - '&eName: &7%name%'
+    - '&eName: &7%arena%'
     - '&eDisplay name: &7%displayName%'
     - '&eStatus: &7%state%'
     - '&eCurrent players: &7%players%/%maxPlayers%'
@@ -95,6 +95,36 @@ signs:
     - '&c&lending'
     - '&nMap: %arena%'
     - '%players%/%maxPlayers%'
+
+scoreboards:
+  waitboard-countdown:
+    - '&e&lSLIME SURVIVAL'
+    - ''
+    - '&2Arena: &a{arena}'
+    - '&2Players: &a{players}/{maxplayers}'
+    - ''
+    - '&7Starting in &a{timer}'
+    - ''
+    - '&egaagjescraft.net'
+  waitboard:
+    - '&e&lSLIME SURVIVAL'
+    - ''
+    - '&2Arena: &a{arena}'
+    - '&2Players: &a{players}/{maxplayers}'
+    - ''
+    - '&7Starting the game if &a{playersneeded}'
+    - '&7more players join the game!'
+    - ''
+    - '&egaagjescraft.net'
+  playboard:
+    - '&e&lSLIME SURVIVAL'
+    - '&2&lSlimes:'
+    - '{slimes}'
+    - ''
+    - '&7&lSurvivors:'
+    - '{survivors}'
+    - ''
+    - '&egaagjescraft.net'
 
 commands:
   slimearena:

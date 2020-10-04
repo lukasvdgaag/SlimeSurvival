@@ -206,6 +206,10 @@ public class Messages {
         return new MSG(fc.getString("arenas.misconfigurations." + id, ""));
     }
 
+    public MSG getScoreboardFormat(String format) {
+        return new MSG(fc.getStringList("scoreboards."+format));
+    }
+
     public MSG getSignFormat(String format) {
         return new MSG(fc.getStringList("signs."+format));
     }

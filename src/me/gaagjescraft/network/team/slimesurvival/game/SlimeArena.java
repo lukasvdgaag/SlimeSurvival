@@ -66,6 +66,8 @@ public class SlimeArena {
         this.arenaSignManager = new SignManager(this);
         this.slimesReleased = false;
 
+        createArenaFile();
+        createWorld();
         loadArenaData();
         saveArenaData();
         getSignManager().updateAll();
@@ -74,7 +76,6 @@ public class SlimeArena {
     public static boolean createNewArena(String name) {
         SlimeSurvival.get().addArena(new SlimeArena(name));
         SlimeArena arena = SlimeSurvival.getArena(name);
-
 
         boolean worldCreated = arena.createWorld();
         if (worldCreated) {
@@ -106,7 +107,7 @@ public class SlimeArena {
 
     private boolean createArenaFile() {
         File directory = new File(SlimeSurvival.get().getDataFolder(), "maps");
-        if (!directory.mkdir()) {
+        if (!directory.exists() && !directory.mkdirs()) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to create the arena folder");
             return false;
         }
@@ -141,21 +142,22 @@ public class SlimeArena {
                     return chunkData;
                 }
             });
-            World w = wc.createWorld();
-            w.setDifficulty(Difficulty.PEACEFUL);
-            w.setSpawnFlags(true, true);
-            w.setPVP(false);
-            w.setStorm(false);
-            w.setThundering(false);
-            w.setKeepSpawnInMemory(false);
-            w.setAutoSave(false);
-            w.setGameRuleValue("doMobSpawning", "false");
-            w.setGameRuleValue("showDeathMessages", "false");
-            w.setGameRuleValue("announceAdvancements", "false");
-            w.setGameRuleValue("doDaylightCycle", "false");
-            w.setGameRuleValue("doWeatherCycle", "false");
+            wc.createWorld();
         }
-        return Bukkit.getWorld(name) != null;
+        World w =Bukkit.getWorld(name);
+        w.setDifficulty(Difficulty.EASY);
+        w.setSpawnFlags(true, true);
+        w.setPVP(false);
+        w.setStorm(false);
+        w.setThundering(false);
+        w.setKeepSpawnInMemory(false);
+        w.setAutoSave(false);
+        w.setGameRuleValue("doMobSpawning", "false");
+        w.setGameRuleValue("showDeathMessages", "false");
+        w.setGameRuleValue("announceAdvancements", "false");
+        w.setGameRuleValue("doDaylightCycle", "false");
+        w.setGameRuleValue("doWeatherCycle", "false");
+        return true;
     }
 
     public void saveWorld() {
@@ -409,8 +411,8 @@ public class SlimeArena {
 
         for (SlimePlayer sp : getGamePlayers()) {
             sp.getPlayer().setLevel(timer);
+            sp.updateScoreboard();
         }
-        // todo add update scoreboard here
     }
 
     public int getMinPlayers() {
@@ -424,6 +426,15 @@ public class SlimeArena {
 
     public List<SlimePlayer> getAllPlayers() {
         return gamePlayers;
+    }
+
+    public List<SlimePlayer> getNonSlimeGamePlayers() {
+        List<SlimePlayer> sps = Lists.newArrayList();
+        for (SlimePlayer a : gamePlayers) {
+            if (a.getTeam() != TeamType.SPECTATOR && a.getTeam() != TeamType.SLIME)
+                sps.add(a);
+        }
+        return sps;
     }
 
     public List<SlimePlayer> getGamePlayers() {
@@ -461,6 +472,9 @@ public class SlimeArena {
     public void setState(ArenaState state) {
         this.state = state;
         getSignManager().updateAll();
+        for (SlimePlayer sp : getGamePlayers()) {
+            sp.updateScoreboard();
+        }
     }
 
     public String getDisplayName() {

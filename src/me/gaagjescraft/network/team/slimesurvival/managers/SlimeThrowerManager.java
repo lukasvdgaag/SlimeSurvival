@@ -1,7 +1,7 @@
 package me.gaagjescraft.network.team.slimesurvival.managers;
 
-import me.gaagjescraft.network.team.slimesurvival.NMS.v1_12_R1.NMSHandler;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
+import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
 import me.gaagjescraft.network.team.slimesurvival.enums.TeamType;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
@@ -52,7 +52,6 @@ public class SlimeThrowerManager {
 
         float yaw = l.getYaw(); // the yaw end location it should point to
 
-        final int[] i = {0};
 
         float floatDifference = getClockwiseDifference(armorStand.getLocation().getYaw(), yaw); // add 9 yaw points per tick (to make it smooth)
 
@@ -64,10 +63,11 @@ public class SlimeThrowerManager {
         float finalYawPerTick = yawPerTick;
 
         new BukkitRunnable() {
+            int i = 0;
             @Override
             public void run() {
-                i[0]++;
-                if (i[0] >= finalTicksToRun - 1 || armorStand.getLocation().getYaw() == yaw) {
+                i++;
+                if (i >= finalTicksToRun - 1 || armorStand.getLocation().getYaw() == yaw) {
                     this.cancel();
                     throwSlimeball(slimePlayer);
                     return;
@@ -85,6 +85,7 @@ public class SlimeThrowerManager {
     public void spawnSelectorSlime(SlimePlayer firstTargetPlayer) {
         Location spawn = arena.getSlimeSpawn().getLocation();
         spawn.add(0,-2,0);
+        spawn.add(0.5, 0, 0.5);
         spawn.setYaw(0);
         spawn.setPitch(0);
         boolean fromMemory = false;
@@ -103,15 +104,14 @@ public class SlimeThrowerManager {
             fromMemory = true;
         }
 
-        final int[] i = {0};
-
         boolean finalFromMemory = fromMemory;
         new BukkitRunnable() {
+            int i = 0;
             @Override
             public void run() {
                 int ticksToRun = 100;
 
-                if (i[0] >= ticksToRun || finalFromMemory) {
+                if (i >= ticksToRun || finalFromMemory) {
                     targetSelectorSlimePlayer(firstTargetPlayer);
                     this.cancel();
                 }
@@ -119,11 +119,11 @@ public class SlimeThrowerManager {
                 spinTick(as, 9);
 
                 Location newLoc = as.getLocation();
-                if (i[0] <= 40) {
+                if (i <= 40) {
                     newLoc.add(0, (0.55 / 40), 0);
                 }
                 as.teleport(newLoc);
-                i[0]++;
+                i++;
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 1);
     }
@@ -133,20 +133,49 @@ public class SlimeThrowerManager {
         player.getArena().removeItem(player,0); // todo make slot configurable
 
         Slime slime = (Slime) p.getWorld().spawnEntity(p.getLocation(), EntityType.SLIME);
-        NMSHandler.modifyEntity(slime);
+        SlimeSurvival.getNMS().modifyEntity(slime);
 
         Location loc = p.getEyeLocation();
         Vector v2 = loc.getDirection().multiply(2.75);
         slime.setVelocity(v2);
         slime.setMetadata("slimesurvival", new FixedMetadataValue(SlimeSurvival.get(), p.getName()));
 
-        //as.remove();
-        Bukkit.getScheduler().scheduleSyncDelayedTask(SlimeSurvival.get(), () -> {
-            if (!slime.isDead()) {
-                player.getArena().giveItem(player, 0, ItemsManager.ITEM_SLIME_THROWER);
-                slime.remove();
+        SlimePlayer owner = getSlimeOwner(slime);
+        new BukkitRunnable() {
+            int i=0;
+            @Override
+            public void run() {
+                if (i>=SlimeSurvival.getCfg().getRemoveThrownSlimesAfter()*20) {
+                    this.cancel();
+                    slime.remove();
+                    arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                    return;
+                }
+                for (Entity entity : slime.getNearbyEntities(0.1, 0.1, 0.1)) {
+                    if (entity.getType() == EntityType.PLAYER) {
+                        SlimePlayer nearPlayer = SlimeSurvival.getSlimePlayer((Player)entity);
+                        if (owner != null && nearPlayer != null) {
+
+                            if (owner != nearPlayer) {
+                                if (nearPlayer.getTeam() == TeamType.SURVIVOR && arena.getMode() == ArenaMode.NORMAL) {
+                                    slime.remove();
+                                    owner.addKill();
+                                    // todo add mode check
+                                    arena.prepareForTeam(nearPlayer, TeamType.SLIME);
+                                    arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                                }
+                            } else if (entity.getTicksLived() > 5) {
+                                // player is the slime owner
+                                slime.remove();
+                                arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
+                                this.cancel();
+                            }
+                        }
+                    }
+                }
+                i++;
             }
-        }, 200);
+        }.runTaskTimer(SlimeSurvival.get(), 0, 1);
     }
 
     public SlimePlayer getSlimeOwner(Entity e) {

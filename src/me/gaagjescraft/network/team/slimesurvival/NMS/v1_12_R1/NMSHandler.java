@@ -1,5 +1,6 @@
 package me.gaagjescraft.network.team.slimesurvival.NMS.v1_12_R1;
 
+import me.gaagjescraft.network.team.slimesurvival.NMS.NMS;
 import net.minecraft.server.v1_12_R1.EntitySlime;
 import net.minecraft.server.v1_12_R1.GenericAttributes;
 import net.minecraft.server.v1_12_R1.MethodProfiler;
@@ -8,9 +9,9 @@ import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftSlime;
 import org.bukkit.entity.Slime;
 
-public class NMSHandler {
+public class NMSHandler implements NMS {
 
-    public static void modifyEntity(Slime e) {
+    public void modifyEntity(Slime e) {
         CraftSlime entity = (CraftSlime) e;
         entity.setInvulnerable(true);
         entity.setSize(3);
@@ -28,5 +29,8 @@ public class NMSHandler {
         slime.targetSelector = new PathfinderGoalSelector(new MethodProfiler());
     }
 
-
+    @Override
+    public int getVersion() {
+        return 12;
+    }
 }

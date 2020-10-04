@@ -3,6 +3,7 @@ package me.gaagjescraft.network.team.slimesurvival.handlers;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.utils.Loc;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -61,7 +62,9 @@ public class SignCreationHandler implements Listener {
                 arena.addSign(loc);
                 arena.saveArenaData();
             }
-            arena.getSignManager().update(loc);
+            Bukkit.getScheduler().runTaskLater(SlimeSurvival.get(), ()-> {
+                arena.getSignManager().update(loc);
+            },20);
         }
     }
 

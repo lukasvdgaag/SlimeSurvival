@@ -1,5 +1,6 @@
 package me.gaagjescraft.network.team.slimesurvival;
 
+import me.gaagjescraft.network.team.slimesurvival.NMS.NMS;
 import me.gaagjescraft.network.team.slimesurvival.commands.arenas.ArenaCmdManager;
 import me.gaagjescraft.network.team.slimesurvival.commands.general.GeneralCmdManager;
 import me.gaagjescraft.network.team.slimesurvival.files.Config;
@@ -16,27 +17,33 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class SlimeSurvival extends JavaPlugin {
     private static SlimeSurvival inst;
-    private static ItemsManager itemsManager;
-    private static Messages messages;
+    private ItemsManager itemsManager;
+    private Messages messages;
     private List<SlimeArena> arenas;
     private Config config;
+    private NMS nmsHandler;
 
     public static SlimeSurvival get() {
         return inst;
     }
 
     public static Messages getMessages() {
-        return messages;
+        return inst.messages;
     }
 
     public static ItemsManager getIM() {
-        return itemsManager;
+        return inst.itemsManager;
+    }
+
+    public static NMS getNMS() {
+        return inst.nmsHandler;
     }
 
     public static SlimeArena getArena(String name) {
@@ -68,6 +75,23 @@ public class SlimeSurvival extends JavaPlugin {
         inst = this;
         arenas = new ArrayList<>();
 
+        String packageName = this.getServer().getClass().getPackage().getName();
+        String version = packageName.substring(packageName.lastIndexOf('.') + 1);
+
+        try {
+            final Class<?> clazz = Class.forName("me.gaagjescraft.network.team.slimesurvival.NMS." + version + ".NMSHandler");
+            // Check if we have a NMSHandler class at that location.
+            if (NMS.class.isAssignableFrom(clazz)) { // Make sure it actually implements NMS
+                this.nmsHandler = (NMS) clazz.getConstructor().newInstance(); // Set our handler
+            }
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException
+                | IllegalArgumentException e) {
+            this.getLogger().severe("Could not find support for this Bukkit version: " + version + ". Now disabling the plugin!");
+            this.setEnabled(false);
+            return;
+        }
+        this.getLogger().info("Loading support for " + version);
+
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
         saveConfig();
@@ -94,13 +118,18 @@ public class SlimeSurvival extends JavaPlugin {
     @Override
     public void onDisable() {
         for (SlimeArena arena : getArenas()) {
-            if (arena != null && arena.getAllPlayers() != null) {
+            if (arena.isEditing()) {
+                arena.saveWorld();
+                arena.saveArenaData();
+            }
+            if (arena.getAllPlayers() != null) {
                 for (SlimePlayer player : arena.getAllPlayers()) {
                     arena.leave(player);
                 }
             }
         }
 
+        this.getServer().getScheduler().cancelTasks(this);
     }
 
     public void loadArenas() {

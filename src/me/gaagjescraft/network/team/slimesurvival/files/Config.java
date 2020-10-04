@@ -12,6 +12,7 @@ public class Config {
     private int gameTimer;
     private int endTimer;
     private int leadTimer;
+    private int removeThrownSlimesAfter;
 
     private String signDisabledBlock;
     private String signWaitingBlock;
@@ -34,6 +35,7 @@ public class Config {
         this.gameTimer = SlimeSurvival.get().getConfig().getInt("gameTimer");
         this.endTimer = SlimeSurvival.get().getConfig().getInt("endTimer");
         this.leadTimer = SlimeSurvival.get().getConfig().getInt("leadTimer");
+        this.removeThrownSlimesAfter = SlimeSurvival.get().getConfig().getInt("removeThrownSlimesAfter");
         this.spectateEnabled = SlimeSurvival.get().getConfig().getBoolean("enableSpectate");
 
         this.signDisabledBlock = SlimeSurvival.get().getConfig().getString("signs.disabled");
@@ -52,6 +54,7 @@ public class Config {
         SlimeSurvival.get().getConfig().set("gameTimer", gameTimer);
         SlimeSurvival.get().getConfig().set("endTimer", endTimer);
         SlimeSurvival.get().getConfig().set("leadTimer", leadTimer);
+        SlimeSurvival.get().getConfig().set("removeThrownSlimesAfter", removeThrownSlimesAfter);
         SlimeSurvival.get().getConfig().set("enableSpectate", spectateEnabled);
 
         SlimeSurvival.get().getConfig().set("signs.disabled", signDisabledBlock);
@@ -117,5 +120,9 @@ public class Config {
 
     public String getSignEndingBlock() {
         return signEndingBlock;
+    }
+
+    public int getRemoveThrownSlimesAfter() {
+        return removeThrownSlimesAfter;
     }
 }

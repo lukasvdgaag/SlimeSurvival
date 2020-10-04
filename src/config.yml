@@ -5,6 +5,7 @@ startingTimer: 10
 gameTimer: 300
 endTimer: 15
 leadTimer: 8
+removeThrownSlimesAfter: 10
 enableSpectate: true
 
 signs:
