@@ -54,6 +54,7 @@ public class SlimeArena {
     private List<SlimePlayer> winners;
     private TeamType winningTeam;
     private boolean hasAwarderWinners;
+    private int debugId = 1;
 
     public SlimeArena(String name) {
         this.name = name;
@@ -102,6 +103,7 @@ public class SlimeArena {
         this.slimesReleased = false;
         this.winningTeam = null;
         this.hasAwarderWinners = false;
+        debugId++;
         for (Loc l : waitingSpawns) {
             getWaitingCageManager().removeCage(l);
         }
@@ -279,6 +281,8 @@ public class SlimeArena {
     }
 
     public void stop() {
+        if (getState() == ArenaState.RESTARTING) return;
+
         setState(ArenaState.RESTARTING);
         List<SlimePlayer> gps = Lists.newArrayList(getAllPlayers());
         for (SlimePlayer p : gps) {
@@ -292,7 +296,7 @@ public class SlimeArena {
         if (enabled) {
             resetArenaData();
             loadArenaData();
-            waitStart();
+            Bukkit.getScheduler().runTaskLater(SlimeSurvival.get(),this::waitStart,40);
         } else {
             setState(ArenaState.DISABLED);
         }
@@ -302,7 +306,6 @@ public class SlimeArena {
         if (getState() == ArenaState.ENDING) return;
 
         setState(ArenaState.ENDING);
-        Bukkit.getLogger().severe("#endMatch: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getEndTimer());
         removeEntities();
 
@@ -324,7 +327,6 @@ public class SlimeArena {
                     return;
                 }
 
-                Bukkit.getLogger().severe("#endMatch: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -355,7 +357,6 @@ public class SlimeArena {
                         sp.getPlayer().sendMessage("§2Main slime left. " + sp.getPlayer().getName() + " is now the main slime!");
                         prepareForTeam(sp, TeamType.SLIME);
                         sp.setMainSlime(true);
-                        changed = true;
                         break;
                     }
                 }
@@ -578,7 +579,6 @@ public class SlimeArena {
     public void startMatch() {
         getSlimeThrowerManager().removeSelectorSlime();
         setState(ArenaState.PLAYING);
-        Bukkit.getLogger().severe("#startMatch: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getGameTimer());
         // making all non-slime players survivors
         for (SlimePlayer sp : getGamePlayers()) {
@@ -614,7 +614,6 @@ public class SlimeArena {
                     setSlimesReleased(true);
                 }
 
-                Bukkit.getLogger().severe("#startMatch: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -650,11 +649,15 @@ public class SlimeArena {
             }
         }
 
-        Bukkit.getLogger().severe("#startSlimeSelection: start (no scheduler)");
         setTimer(10); // todo make this configurable
         new BukkitRunnable() {
             @Override
             public void run() {
+                if (getState() != ArenaState.STARTING) {
+                    this.cancel();
+                    return;
+                }
+
                 if (getTimer() <= 0) {
                     calculateSlimeTeamPlayers();
                     for (SlimePlayer sp : getGamePlayers()) {
@@ -672,7 +675,6 @@ public class SlimeArena {
                         SlimeSurvival.getMessages().getStartSlimeSelectionCountdownTitle().addVar("%time%",getTimer()+"").sendTitle(sp.getPlayer(),5,10,5);
                     }
                 }
-                Bukkit.getLogger().severe("#startSlimeSelection: scheduler, 20 ticks");
                 setTimer(getTimer() - 1);
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 20);
@@ -682,7 +684,6 @@ public class SlimeArena {
     private void waitStart() {
         if (getState() == ArenaState.WAITING) return;
 
-        Bukkit.getLogger().severe("#waitStart: start (no scheduler)");
         setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
         setState(ArenaState.WAITING);
         new BukkitRunnable() {
@@ -693,7 +694,6 @@ public class SlimeArena {
                 if (getGamePlayers().size() >= getMinPlayers() || isForceStart()) {
                     // min player amount is reached, now starting countdown
                     if (getTimer() <= 0) {
-                        Bukkit.getLogger().severe("now cancelling the waitstart scheduler");
                         this.cancel();
                         startSlimeSelection();
                         return;
@@ -712,10 +712,8 @@ public class SlimeArena {
                             }
                         }
                     }
-                    Bukkit.getLogger().severe("#waitStart: scheduler, 20 ticks");
                     setTimer(getTimer()-1);
                 } else {
-                    Bukkit.getLogger().severe("#waitStart: scheduler, 20 ticks (1)");
                     setTimer(SlimeSurvival.getCfg().getWaitingLobbyTimer());
                 }
             }

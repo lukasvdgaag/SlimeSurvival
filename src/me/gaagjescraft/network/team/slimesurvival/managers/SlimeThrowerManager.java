@@ -2,6 +2,7 @@ package me.gaagjescraft.network.team.slimesurvival.managers;
 
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
+import me.gaagjescraft.network.team.slimesurvival.enums.ArenaState;
 import me.gaagjescraft.network.team.slimesurvival.enums.TeamType;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
@@ -66,6 +67,10 @@ public class SlimeThrowerManager {
             int i = 0;
             @Override
             public void run() {
+                if (arena.getState() != ArenaState.STARTING) {
+                    this.cancel();
+                    return;
+                }
                 i++;
                 if (i >= finalTicksToRun - 1 || armorStand.getLocation().getYaw() == yaw) {
                     this.cancel();
@@ -109,6 +114,10 @@ public class SlimeThrowerManager {
             int i = 0;
             @Override
             public void run() {
+                if (arena.getState() != ArenaState.STARTING) {
+                    this.cancel();
+                    return;
+                }
                 int ticksToRun = 100;
 
                 if (i >= ticksToRun || finalFromMemory) {
@@ -145,6 +154,11 @@ public class SlimeThrowerManager {
             int i=0;
             @Override
             public void run() {
+                if (arena.getState() != ArenaState.PLAYING) {
+                    this.cancel();
+                    slime.remove();
+                    return;
+                }
                 if (i>=SlimeSurvival.getCfg().getRemoveThrownSlimesAfter()*20) {
                     this.cancel();
                     slime.remove();
@@ -241,6 +255,10 @@ public class SlimeThrowerManager {
             new BukkitRunnable() {
                 @Override
                 public void run() {
+                    if (arena.getState() != ArenaState.STARTING) {
+                        this.cancel();
+                        return;
+                    }
                     if (as.getNearbyEntities(1.5, 1.5, 1.5).contains(player)) {
                         as.remove();
                         this.cancel();

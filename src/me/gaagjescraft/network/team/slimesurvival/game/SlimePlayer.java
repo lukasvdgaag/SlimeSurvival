@@ -123,6 +123,7 @@ public class SlimePlayer {
 
     public void repair() {
         restoreInventory();
+        resetScoreboard();
     }
 
     public void updateScoreboard() {
