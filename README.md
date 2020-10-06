@@ -23,6 +23,16 @@ But if the slimes manage to overpower all survivors in time, they will win and t
 During the game, there are several powerups that make surviving for survivors a little bit easier.
 Things such as "Slime Trap", "Leap tool", "Invisibily wand" and more.
 
+## A small description per game mode
+### Normal Mode
+Only one player is chosen to be a slime. The main slime has to slime survivors by throwing slimes at them. Once a survivor gets slimed, they turn into slimes as well and have to help the main slime.
+  
+### Classic Mode
+One player gets chosen to be the slime. This player has to transfer their slime to another player in order to win. At the end of the game, the player who is the slime loses, the other survivors win.
+
+### Freeze Mode
+A few players are chosen to be slimes. They can paralyse players by throwing slimes at them, but survivors can rescue their paralysed teammates. If everyone gets paralysed, slimes win!
+
 ## Development
 This game plugin is currently under development by GaagjesCraft Network Team (GCNT).
 There's not yet a release date.
