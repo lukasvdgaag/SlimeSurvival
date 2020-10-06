@@ -7,10 +7,10 @@ The game consists of two teams: slimes and survivors.
 The slimes have to overpower the survivors by throwing slimes at them.
 Survivors simply have to survive the slime attack by not getting slimed.
 
-Once you're slimed, you either get freezed, turned into a slime as well, or die.
+Once you're slimed, you either get frozen, turned into a slime as well, or die.
 
 ## More info about the game
-Freeze mode means that overpowered survivors get freezed. They get put on a slime (as if they're riding it) and won't be able to move or get off the slime.
+Freeze mode means that overpowered survivors get frozen. They get put on a slime (as if they're riding it) and won't be able to move or get off the slime.
 They can move once per x seconds (the slime will jump to the pointed direction).
 Remaining survivors can revive the overpowered survivors by standing near them for x seconds, but have to be aware to not get slimed as well.
 
