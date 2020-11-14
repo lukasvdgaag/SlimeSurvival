@@ -2,6 +2,7 @@ package me.gaagjescraft.network.team.slimesurvival.game;
 
 import com.google.common.collect.Lists;
 import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
+import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaState;
 import me.gaagjescraft.network.team.slimesurvival.enums.TeamType;
 import me.gaagjescraft.network.team.slimesurvival.managers.SlimeBoard;
@@ -28,6 +29,7 @@ public class SlimePlayer {
     private Loc assignedWaitingSpawn;
     private boolean isCompromised;
     private boolean isMainSlime;
+    private ArenaMode votedMode;
 
     private Inventory inv;
 
@@ -40,9 +42,18 @@ public class SlimePlayer {
         this.team = null;
         this.isCompromised = false;
         this.isMainSlime = false;
+        this.votedMode = null;
 
         inv = Bukkit.createInventory(null, InventoryType.PLAYER, player.getName());
         storeInventory();
+    }
+
+    public ArenaMode getVotedMode() {
+        return votedMode;
+    }
+
+    public void setVotedMode(ArenaMode votedMode) {
+        this.votedMode = votedMode;
     }
 
     public boolean isMainSlime() {

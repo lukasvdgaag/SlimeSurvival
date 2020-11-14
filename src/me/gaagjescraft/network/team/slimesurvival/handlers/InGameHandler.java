@@ -13,6 +13,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -58,6 +59,7 @@ public class InGameHandler implements Listener {
             }
             if (e.getItem().equals(ItemsManager.ITEM_VOTE_MODE)) {
                 // open vote menu here
+                sp.getArena().getVoteModeMenu().update(sp);
             }
         }
 
@@ -74,11 +76,27 @@ public class InGameHandler implements Listener {
     }
 
     @EventHandler
+    public void onInventoryClose(InventoryCloseEvent e) {
+        SlimePlayer sp = SlimeSurvival.getSlimePlayer((Player) e.getPlayer());
+        if (sp == null) return;
+
+        if (sp.getArena().getVoteModeMenu().getViewers().contains(sp)) {
+            sp.getArena().getVoteModeMenu().removeViewer(sp);
+        }
+    }
+
+    @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
         SlimePlayer sp = SlimeSurvival.getSlimePlayer((Player) e.getWhoClicked());
         if (sp == null) return;
 
         e.setCancelled(true);
+
+        if (e.getClickedInventory() == null || e.getClickedInventory().equals(e.getView().getBottomInventory())) return;
+
+        if (sp.getArena().getVoteModeMenu().getViewers().contains(sp)) {
+            sp.getArena().getVoteModeMenu().click(sp, e.getRawSlot());
+        }
     }
 
     @EventHandler

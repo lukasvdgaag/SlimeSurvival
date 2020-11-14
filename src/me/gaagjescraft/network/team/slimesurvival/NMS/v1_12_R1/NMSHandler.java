@@ -6,10 +6,16 @@ import net.minecraft.server.v1_12_R1.GenericAttributes;
 import net.minecraft.server.v1_12_R1.MethodProfiler;
 import net.minecraft.server.v1_12_R1.PathfinderGoalSelector;
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftArmorStand;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftSlime;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Slime;
 
 public class NMSHandler implements NMS {
+
+    public void modifySelectorSlime(ArmorStand as) {
+        ((CraftArmorStand)as).getHandle().noclip = true;
+    }
 
     public void modifyEntity(Slime e) {
         CraftSlime entity = (CraftSlime) e;

@@ -15,6 +15,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -46,6 +47,11 @@ public class SlimeThrowerManager {
         return toSpinDeg;
     }
 
+    private static EulerAngle angleToEulerAngle(double radians){
+        double z = Math.sin(radians);
+        return new EulerAngle(0,0,z);
+    }
+
     public void targetSelectorSlimePlayer(SlimePlayer slimePlayer) {
         Player player = slimePlayer.getPlayer();
         Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation()/*.add(0.5, 0, 0.5)*/.subtract(armorStand.getEyeLocation()).toVector();
@@ -74,7 +80,12 @@ public class SlimeThrowerManager {
                 i++;
                 if (i >= finalTicksToRun - 1 || armorStand.getLocation().getYaw() == yaw) {
                     this.cancel();
-                    throwSlimeball(slimePlayer);
+                    if (arena.getMode() == ArenaMode.FREEZE) {
+                        throwSlimeball(slimePlayer);
+                    }
+                    else {
+                        bobSlimeHead(slimePlayer);
+                    }
                     return;
                 }
 
@@ -82,6 +93,66 @@ public class SlimeThrowerManager {
             }
         }.runTaskTimer(SlimeSurvival.get(), 0, 1);
     }
+
+    private EulerAngle angleToEulerAngle(int degrees){
+        return angleToEulerAngle(Math.toRadians(degrees));
+    }
+
+    public void bobSlimeHead(SlimePlayer slimePlayer) {
+        new BukkitRunnable() {
+            int i = 0;
+            int deg = 0;
+            @Override
+            public void run() {
+                i++;
+
+                if (i<=12) {
+                    deg+=3;
+                    armorStand.setHeadPose(angleToEulerAngle(deg));
+                }
+                else if (i<=36) {
+                    if (i==25) {
+                        deg=357;
+                        armorStand.setHeadPose(angleToEulerAngle(deg));
+                    }
+                    else {
+                        deg -= 3;
+                        armorStand.setHeadPose(angleToEulerAngle(deg));                    //armorStand.setHeadPose(armorStand.getHeadPose().setZ(armorStand.getHeadPose().getZ()-4));
+                    }
+                }
+                else if (i<=48) {
+                    deg+=3;
+                    armorStand.setHeadPose(angleToEulerAngle(deg));
+                    //armorStand.setHeadPose(armorStand.getHeadPose().setZ(armorStand.getHeadPose().getZ()+4));
+                    armorStand.teleport(armorStand.getLocation().add(0,0.10,0));
+
+                    if (i == 48) {
+                        Vector target = slimePlayer.getPlayer().getEyeLocation().toVector();
+                        Vector current = armorStand.getLocation().toVector();
+
+                        Vector between = target.subtract(current);
+                        SlimeSurvival.getNMS().modifySelectorSlime(armorStand);
+                        armorStand.setGravity(true);
+                        armorStand.setCollidable(false);
+                        armorStand.setVelocity(between.normalize());
+                    }
+                }
+                else {
+                    if (armorStand.getNearbyEntities(0.1,0.1,0.1).contains(slimePlayer.getPlayer())) {
+                        arena.prepareForTeam(slimePlayer, TeamType.SLIME);
+                        if (arena.getMainSlime() == null) {
+                            slimePlayer.setMainSlime(true);
+                        }
+                        armorStand.remove();
+                        arena.startMatch();
+                        cancel();
+                        return;
+                    }
+                }
+            }
+        }.runTaskTimer(SlimeSurvival.get(),0,1);
+    }
+
 
     public void removeSelectorSlime() {
         if (armorStand != null) this.armorStand.remove();
@@ -103,11 +174,14 @@ public class SlimeThrowerManager {
             as.setMarker(false);
             as.setHelmet(ItemsManager.ARMOR_SLIME_HEAD);
             as.setMetadata("slimesurvival", new FixedMetadataValue(SlimeSurvival.get(), arena.getName()));
+            as.setBasePlate(false);
             armorStand = as;
         } else {
             as = armorStand;
             fromMemory = true;
         }
+
+        armorStand.setCollidable(false);
 
         boolean finalFromMemory = fromMemory;
         new BukkitRunnable() {

@@ -34,9 +34,6 @@ public class JoinCmd extends BaseCmd {
         if (!added) {
             SlimeSurvival.getMessages().getGameIsFull().send(player);
         }
-        else {
-            SlimeSurvival.getMessages().getJoinedGame().addVar("%arena%", arena.getDisplayName()).send(player);
-        }
 
         return true;
     }

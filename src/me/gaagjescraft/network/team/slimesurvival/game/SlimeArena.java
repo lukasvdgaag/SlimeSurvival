@@ -9,6 +9,7 @@ import me.gaagjescraft.network.team.slimesurvival.managers.ArenaWaitingCageManag
 import me.gaagjescraft.network.team.slimesurvival.managers.SignManager;
 import me.gaagjescraft.network.team.slimesurvival.managers.SlimeThrowerManager;
 import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
+import me.gaagjescraft.network.team.slimesurvival.menus.VoteModeMenu;
 import me.gaagjescraft.network.team.slimesurvival.utils.Loc;
 import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
 import org.bukkit.*;
@@ -48,6 +49,7 @@ public class SlimeArena {
     private boolean forceStart;
     private SlimeThrowerManager slimeThrowerManager;
     private ArenaWaitingCageManager arenaWaitingCageManager;
+    private VoteModeMenu voteModeMenu;
     private SignManager arenaSignManager;
     private int calculatedSlimeTeamPlayers;
     private boolean slimesReleased;
@@ -72,12 +74,17 @@ public class SlimeArena {
         this.slimesReleased = false;
         this.winningTeam = null;
         this.hasAwarderWinners = false;
+        this.voteModeMenu = new VoteModeMenu(this);
 
         createArenaFile();
         createWorld();
         loadArenaData();
         saveArenaData();
         getSignManager().updateAll();
+    }
+
+    public VoteModeMenu getVoteModeMenu() {
+        return voteModeMenu;
     }
 
     public static boolean createNewArena(String name) {
@@ -110,10 +117,10 @@ public class SlimeArena {
     }
 
     public void calculateSlimeTeamPlayers() {
-        if (this.mode == ArenaMode.NORMAL) {
-            this.calculatedSlimeTeamPlayers = 1;
-        } else {
+        if (this.mode == ArenaMode.FREEZE) {
             this.calculatedSlimeTeamPlayers = (int) (getGamePlayers().size() / 3);
+        } else {
+            this.calculatedSlimeTeamPlayers = 1;
         }
     }
 
@@ -338,6 +345,16 @@ public class SlimeArena {
             getWaitingCageManager().removeCage(player.getWaitingSpawn());
         }
         gamePlayers.remove(player);
+
+        if (state == ArenaState.WAITING || state == ArenaState.STARTING) {
+            for (SlimePlayer sps : getGamePlayers()) {
+                SlimeSurvival.getMessages().getLeaveGame()
+                        .addVar("%player%", player.getPlayer().getName())
+                        .addVar("%players%", getGamePlayers().size()+"")
+                        .addVar("%maxplayers%", getWaitingSpawns().size()+"")
+                        .send(sps.getPlayer());
+            }
+        }
 
         if (state == ArenaState.PLAYING && getGamePlayers().size() > 1) {
             if (player.getTeam() == TeamType.SLIME && player.isMainSlime()) {
@@ -576,10 +593,35 @@ public class SlimeArena {
         }
     }
 
+    private void determineMode() {
+        if (enableModeVoting) {
+            int normalVotes = getModeVotes(ArenaMode.NORMAL);
+            int freezeVotes = getModeVotes(ArenaMode.FREEZE);
+            int classicVotes = getModeVotes(ArenaMode.CLASSIC);
+            if (normalVotes == 0 && freezeVotes == 0 && classicVotes == 0) {
+                this.mode = ArenaMode.NORMAL;
+            }
+            else if (classicVotes > freezeVotes && classicVotes > normalVotes) {
+                this.mode = ArenaMode.CLASSIC;
+            }
+            else if (freezeVotes > normalVotes && freezeVotes > classicVotes) {
+                this.mode = ArenaMode.FREEZE;
+            }
+            else {
+                this.mode = ArenaMode.NORMAL;
+            }
+        }
+        else {
+            this.mode = defaultMode;
+        }
+    }
+
     public void startMatch() {
         getSlimeThrowerManager().removeSelectorSlime();
+
         setState(ArenaState.PLAYING);
         setTimer(SlimeSurvival.getCfg().getGameTimer());
+
         // making all non-slime players survivors
         for (SlimePlayer sp : getGamePlayers()) {
             if (sp.getTeam() != TeamType.SLIME) {
@@ -623,6 +665,7 @@ public class SlimeArena {
     private void startSlimeSelection() {
         List<SlimePlayer> sps = getGamePlayers();
         setState(ArenaState.STARTING);
+        determineMode();
         for (int i = 0; i < sps.size(); i++) {
             SlimePlayer sp = sps.get(i);
             Player p = sp.getPlayer();
@@ -646,10 +689,12 @@ public class SlimeArena {
                 SlimeSurvival.getMessages().getFreezeGameDescription().send(p);
             } else if (mode == ArenaMode.NORMAL) {
                 SlimeSurvival.getMessages().getNormalGameDescription().send(p);
+            } else if (mode == ArenaMode.CLASSIC) {
+                SlimeSurvival.getMessages().getClassicGameDescription().send(p);
             }
         }
 
-        setTimer(10); // todo make this configurable
+        setTimer(10);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -691,7 +736,7 @@ public class SlimeArena {
             public void run() {
                 if (getState() != ArenaState.WAITING) this.cancel();
 
-                if (getGamePlayers().size() >= getMinPlayers() || isForceStart()) {
+                if (!getGamePlayers().isEmpty() && (getGamePlayers().size() >= getMinPlayers() || isForceStart())) {
                     // min player amount is reached, now starting countdown
                     if (getTimer() <= 0) {
                         this.cancel();
@@ -745,6 +790,15 @@ public class SlimeArena {
                         }
                     }
                 }
+
+                for (SlimePlayer sps : getGamePlayers()) {
+                    SlimeSurvival.getMessages().getJoinGame()
+                            .addVar("%player%", sp.getPlayer().getName())
+                            .addVar("%players%", getGamePlayers().size()+"")
+                            .addVar("%maxplayers%", getWaitingSpawns().size()+"")
+                            .send(sps.getPlayer());
+                }
+
                 getSignManager().updateAll();
                 return true;
             }
@@ -779,6 +833,8 @@ public class SlimeArena {
 
     public void checkForWin() {
         winners = new ArrayList<>();
+        if (getState() != ArenaState.PLAYING && getState() != ArenaState.ENDING) return;
+
         if (getMode() == ArenaMode.NORMAL) {
             if (getGamePlayers(TeamType.SURVIVOR).isEmpty()) {
                 // slimes have compromised all survivors - they won
@@ -893,6 +949,16 @@ public class SlimeArena {
             }
         }
         return null;
+    }
+
+    public int getModeVotes(ArenaMode mode) {
+        int amount = 0;
+        for (SlimePlayer sp : getGamePlayers()) {
+            if (sp.getVotedMode() != null && sp.getVotedMode() == mode) {
+                amount++;
+            }
+        }
+        return amount;
     }
 
     public SignManager getSignManager() {

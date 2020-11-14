@@ -1,3 +1,8 @@
+classicGameDescription:
+  - '&7-----------------------------------'
+  - '&6         How to play! (classic mode)'
+  - '&bOne player gets chosen to be the slime. This player has to transfer their slime to another player in order to win. At the end of the game, the player who is the slime loses, the other survivors win.'
+  - '&7-----------------------------------'
 normalGameDescription:
   - '&7-----------------------------------'
   - '&6         How to play! (normal mode)'
@@ -27,6 +32,8 @@ signCreated: '&aSign for arena %arena% created!'
 signRemoved: '&cSign of arena %arena% has been removed!'
 mustBeInLobby: '&cYou must be in the main lobby to do this!'
 
+joinGame: '&2%player% &ajoined the game &7(%players%/%maxplayers%)'
+leaveGame: '&2%player% &cleft the game &7(%players%/%maxplayers%)'
 playerParalysed: '&a%player% &ewas paralysed by &2%slime%'
 playerGotSlimed: '&a%player% &ewas turned into a slime by &2%slime%'
 playerGotTagged: '&a%player% &egot tagged by &2%slime% &eand is now the slime'

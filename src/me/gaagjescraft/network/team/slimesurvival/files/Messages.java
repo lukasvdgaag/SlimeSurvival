@@ -16,6 +16,7 @@ public class Messages {
 
     private FileConfiguration fc;
 
+    private List<String> classicGameDescription;
     private List<String> normalGameDescription;
     private List<String> freezeGameDescription;
     private String startSlimeSelectionTitle;
@@ -49,6 +50,8 @@ public class Messages {
     private String joinedGame;
     private String mustBeInGame;
     private String leftGame;
+    private String joinGame;
+    private String leaveGame;
 
     private String arenaSpawnInUse;
     private String invalidSpawnType;
@@ -85,6 +88,7 @@ public class Messages {
         FileConfiguration fc = YamlConfiguration.loadConfiguration(file);
         this.fc = fc;
 
+        this.classicGameDescription = fc.getStringList("classicGameDescription");
         this.normalGameDescription = fc.getStringList("normalGameDescription");
         this.freezeGameDescription = fc.getStringList("freezeGameDescription");
         this.countdownSlimeSelectionTeleportation = fc.getString("countdownSlimeSelectionTeleportation");
@@ -110,6 +114,8 @@ public class Messages {
         this.playerParalysed = fc.getString("playerParalysed");
         this.playerGotTagged = fc.getString("playerGotTagged");
         this.releaseSlimesForSurvivors = fc.getString("releaseSlimesForSurvivors");
+        this.joinGame = fc.getString("joinGame");
+        this.leaveGame = fc.getString("leaveGame");
 
         this.arenaSpawnInUse = fc.getString("arenas.spawnLocationInUse");
         this.invalidSpawnType = fc.getString("arenas.invalidSpawnType");
@@ -149,6 +155,7 @@ public class Messages {
         SlimeUtils.copyDefaults(file, "messages.yml");
         FileConfiguration fc = YamlConfiguration.loadConfiguration(file);
 
+        fc.set("classicGameDescription", classicGameDescription);
         fc.set("normalGameDescription", normalGameDescription);
         fc.set("freezeGameDescription", freezeGameDescription);
         fc.set("countdownSlimeSelectionTeleportation", countdownSlimeSelectionTeleportation);
@@ -174,6 +181,8 @@ public class Messages {
         fc.set("playerParalysed", playerParalysed);
         fc.set("playerGotTagged", playerGotTagged);
         fc.set("releaseSlimesForSurvivors", releaseSlimesForSurvivors);
+        fc.set("joinGame", joinGame);
+        fc.set("leaveGame", leaveGame);
 
         fc.set("arenas.spawnLocationInUse", arenaSpawnInUse);
         fc.set("arenas.invalidSpawnType", invalidSpawnType);
@@ -232,6 +241,7 @@ public class Messages {
         return new MSG(fc.getStringList("signs."+format));
     }
 
+    public MSG getClassicGameDescription() { return new MSG(classicGameDescription); }
 
     public MSG getNormalGameDescription() {
         return new MSG(normalGameDescription);
@@ -418,6 +428,10 @@ public class Messages {
     public MSG getReleaseSlimesForSurvivors() { return new MSG(releaseSlimesForSurvivors); }
 
     public MSG getReleaseSlimesForSurvivorsTitle() { return new MSG(releaseSlimesForSurvivorsTitle); }
+
+    public MSG getLeaveGame() { return new MSG(leaveGame); }
+
+    public MSG getJoinGame() { return new MSG(joinGame); }
 
     public class MSG {
         List<String> message;
