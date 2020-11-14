@@ -469,8 +469,19 @@ public class SlimeArena {
     public void setTimer(int timer) {
         this.timer = timer;
 
-        for (SlimePlayer sp : getGamePlayers()) {
+        for (SlimePlayer sp : getAllPlayers()) {
             if (getState() == ArenaState.PLAYING && timer <= SlimeSurvival.getCfg().getGameTimer() - SlimeSurvival.getCfg().getLeadTimer()) {
+                if (getMode() != ArenaMode.FREEZE || !sp.isCompromised()) {
+                    sp.getPlayer().setExp(0);
+                }
+                sp.getPlayer().setLevel(timer);
+            }
+            else if (getState() == ArenaState.ENDING) {
+                sp.getPlayer().setExp((float) (timer) / SlimeSurvival.getCfg().getEndTimer());
+                sp.getPlayer().setLevel(timer);
+            }
+            else if (getState() == ArenaState.WAITING) {
+                sp.getPlayer().setExp((float) (timer) / SlimeSurvival.getCfg().getWaitingLobbyTimer());
                 sp.getPlayer().setLevel(timer);
             }
             sp.updateScoreboard();

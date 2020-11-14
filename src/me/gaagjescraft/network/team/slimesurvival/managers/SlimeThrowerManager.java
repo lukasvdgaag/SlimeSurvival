@@ -54,14 +54,12 @@ public class SlimeThrowerManager {
 
     public void targetSelectorSlimePlayer(SlimePlayer slimePlayer) {
         Player player = slimePlayer.getPlayer();
-        Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation()/*.add(0.5, 0, 0.5)*/.subtract(armorStand.getEyeLocation()).toVector();
+        Vector v = Loc.fromLocation(player.getLocation()).shortify().getLocation().subtract(armorStand.getEyeLocation()).toVector();
         Location l = armorStand.getLocation().clone().setDirection(v);
 
-        float yaw = l.getYaw(); // the yaw end location it should point to
+        float yaw = l.getYaw();
 
-
-        float floatDifference = getClockwiseDifference(armorStand.getLocation().getYaw(), yaw); // add 9 yaw points per tick (to make it smooth)
-
+        float floatDifference = getClockwiseDifference(armorStand.getLocation().getYaw(), yaw);
 
         int floatD = ((int) (floatDifference / 5) * 5);
         int ticksToRun = (int) (floatD / 4.5);
@@ -117,13 +115,12 @@ public class SlimeThrowerManager {
                     }
                     else {
                         deg -= 3;
-                        armorStand.setHeadPose(angleToEulerAngle(deg));                    //armorStand.setHeadPose(armorStand.getHeadPose().setZ(armorStand.getHeadPose().getZ()-4));
+                        armorStand.setHeadPose(angleToEulerAngle(deg));
                     }
                 }
                 else if (i<=48) {
                     deg+=3;
                     armorStand.setHeadPose(angleToEulerAngle(deg));
-                    //armorStand.setHeadPose(armorStand.getHeadPose().setZ(armorStand.getHeadPose().getZ()+4));
                     armorStand.teleport(armorStand.getLocation().add(0,0.10,0));
 
                     if (i == 48) {
@@ -131,14 +128,15 @@ public class SlimeThrowerManager {
                         Vector current = armorStand.getLocation().toVector();
 
                         Vector between = target.subtract(current);
-                        SlimeSurvival.getNMS().modifySelectorSlime(armorStand);
                         armorStand.setGravity(true);
                         armorStand.setCollidable(false);
                         armorStand.setVelocity(between.normalize());
+                        SlimeSurvival.getNMS().modifySelectorSlime(armorStand);
                     }
+
                 }
                 else {
-                    if (armorStand.getNearbyEntities(0.1,0.1,0.1).contains(slimePlayer.getPlayer())) {
+                    if (armorStand.getNearbyEntities(0.05,0.05,0.05).contains(slimePlayer.getPlayer())) {
                         arena.prepareForTeam(slimePlayer, TeamType.SLIME);
                         if (arena.getMainSlime() == null) {
                             slimePlayer.setMainSlime(true);
@@ -146,7 +144,6 @@ public class SlimeThrowerManager {
                         armorStand.remove();
                         arena.startMatch();
                         cancel();
-                        return;
                     }
                 }
             }
@@ -287,7 +284,6 @@ public class SlimeThrowerManager {
                                     arena.checkForWin();
                                 }
                             } else if (entity.getTicksLived() > 10) {
-                                // player is the slime owner
                                 slime.remove();
                                 arena.giveItem(owner, 0, ItemsManager.ITEM_SLIME_THROWER);
                                 this.cancel();
