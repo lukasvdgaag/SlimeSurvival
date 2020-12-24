@@ -5,6 +5,7 @@ import me.gaagjescraft.network.team.slimesurvival.utils.SlimeUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -35,6 +36,7 @@ public class ItemsManager {
     public static ItemStack MENU_VOTE_NORMAL;
     public static ItemStack MENU_VOTE_CLASSIC;
     public static ItemStack MENU_VOTE_FREEZE;
+    public static ItemStack MENU_CLOSE;
 
     public ItemsManager() {
         loadArmor();
@@ -81,6 +83,14 @@ public class ItemsManager {
         cvm.addItemFlags(ItemFlag.values());
         classicVote.setItemMeta(cvm);
         MENU_VOTE_CLASSIC = classicVote;
+
+        ItemStack close = new ItemStack(Material.BOOK);
+        ItemMeta cm = close.getItemMeta();
+        cm.setDisplayName(SlimeUtils.c("&7Close"));
+        cvm.addItemFlags(ItemFlag.values());
+        close.setItemMeta(cm);
+        MENU_CLOSE = close;
+
     }
 
     public void loadArmor() {
@@ -139,6 +149,7 @@ public class ItemsManager {
         slimeMeta.setDisplayName(ChatColor.GREEN + "Slime thrower");
         slimeMeta.setLore(Lists.newArrayList(ChatColor.GRAY + "Left click to throw a slime"));
         slimeMeta.addItemFlags(ItemFlag.values());
+        slimeMeta.addEnchant(Enchantment.DURABILITY, 1, true);
         slimeThrower.setItemMeta(slimeMeta);
 
         ItemStack bigSlime = new ItemStack(Material.MAGMA_CREAM);

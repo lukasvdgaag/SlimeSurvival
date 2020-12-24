@@ -1,7 +1,9 @@
 package me.gaagjescraft.network.team.slimesurvival.menus;
 
 import com.google.common.collect.Lists;
+import me.gaagjescraft.network.team.slimesurvival.SlimeSurvival;
 import me.gaagjescraft.network.team.slimesurvival.enums.ArenaMode;
+import me.gaagjescraft.network.team.slimesurvival.files.Messages;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimeArena;
 import me.gaagjescraft.network.team.slimesurvival.game.SlimePlayer;
 import me.gaagjescraft.network.team.slimesurvival.managers.items.ItemsManager;
@@ -27,12 +29,26 @@ public class VoteModeMenu  {
     public void click(SlimePlayer player, int slot) {
         if (slot == 11 && player.getVotedMode() != ArenaMode.NORMAL) {
             player.setVotedMode(ArenaMode.NORMAL);
-            player.getPlayer().sendMessage("You voted for normal mode");
+            for (SlimePlayer sp : player.getArena().getAllPlayers()) {
+                new Messages.MSG(SlimeSurvival.getMessages().getGameOptionVoted())
+                        .addVar("%player%", sp.getPlayer().getName())
+                        .addVar("%type%", "normal")
+                        .addVar("%votes%", sp.getArena().getModeVotes(ArenaMode.NORMAL) + "")
+                        .send(sp.getPlayer());
+            }
+
             updateAll();
         }
         else if (slot == 13 && player.getVotedMode() != ArenaMode.CLASSIC) {
             player.setVotedMode(ArenaMode.CLASSIC);
-            player.getPlayer().sendMessage("You voted for classic mode");
+            for (SlimePlayer sp : player.getArena().getAllPlayers()) {
+                new Messages.MSG(SlimeSurvival.getMessages().getGameOptionVoted())
+                        .addVar("%player%", sp.getPlayer().getName())
+                        .addVar("%type%", "classic")
+                        .addVar("%votes%", sp.getArena().getModeVotes(ArenaMode.CLASSIC) + "")
+                        .send(sp.getPlayer());
+            }
+
             updateAll();
         }
         else if (slot == 15 && player.getVotedMode() != ArenaMode.FREEZE){
@@ -40,6 +56,9 @@ public class VoteModeMenu  {
             /*player.setVotedMode(ArenaMode.FREEZE);
             player.getPlayer().sendMessage("You voted for freeze mode");
             updateAll();*/
+        }
+        else if (slot == 31) {
+            player.getPlayer().closeInventory();
         }
     }
 
@@ -69,7 +88,7 @@ public class VoteModeMenu  {
     }
 
     public void update(SlimePlayer sp) {
-        Inventory menu = Bukkit.createInventory(null, 27, "§aVote for game mode");
+        Inventory menu = Bukkit.createInventory(null, 36, "§aVote for game mode");
 
         ItemStack vm = ItemsManager.MENU_VOTE_NORMAL.clone();
         List<String> vLore = vm.getItemMeta().getLore();
@@ -95,6 +114,7 @@ public class VoteModeMenu  {
         menu.setItem(11, vm);
         menu.setItem(13, cm);
         menu.setItem(15, fm);
+        menu.setItem(31, ItemsManager.MENU_CLOSE);
 
         open(sp, menu);
 

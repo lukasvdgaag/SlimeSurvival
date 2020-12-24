@@ -121,10 +121,9 @@ public class SlimeThrowerManager {
                 else if (i<=48) {
                     deg+=3;
                     armorStand.setHeadPose(angleToEulerAngle(deg));
-                    armorStand.teleport(armorStand.getLocation().add(0,0.10,0));
 
                     if (i == 48) {
-                        Vector target = slimePlayer.getPlayer().getEyeLocation().toVector();
+                        Vector target = slimePlayer.getPlayer().getEyeLocation().add(0,0.2,0).toVector();
                         Vector current = armorStand.getLocation().toVector();
 
                         Vector between = target.subtract(current);
@@ -212,7 +211,7 @@ public class SlimeThrowerManager {
         Player p = player.getPlayer();
         player.getArena().removeItem(player,0); // todo make slot configurable
 
-        Slime slime = (Slime) p.getWorld().spawnEntity(p.getLocation(), EntityType.SLIME);
+        Slime slime = (Slime) p.getWorld().spawnEntity(p.getEyeLocation(), EntityType.SLIME);
         SlimeSurvival.getNMS().modifyEntity(slime);
 
         Location loc = p.getEyeLocation();

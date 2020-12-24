@@ -52,6 +52,7 @@ public class Messages {
     private String leftGame;
     private String joinGame;
     private String leaveGame;
+    private String gameOptionVoted;
 
     private String arenaSpawnInUse;
     private String invalidSpawnType;
@@ -116,6 +117,7 @@ public class Messages {
         this.releaseSlimesForSurvivors = fc.getString("releaseSlimesForSurvivors");
         this.joinGame = fc.getString("joinGame");
         this.leaveGame = fc.getString("leaveGame");
+        this.gameOptionVoted = fc.getString("gameOptionVoted");
 
         this.arenaSpawnInUse = fc.getString("arenas.spawnLocationInUse");
         this.invalidSpawnType = fc.getString("arenas.invalidSpawnType");
@@ -183,6 +185,7 @@ public class Messages {
         fc.set("releaseSlimesForSurvivors", releaseSlimesForSurvivors);
         fc.set("joinGame", joinGame);
         fc.set("leaveGame", leaveGame);
+        fc.set("gameOptionVoted", gameOptionVoted);
 
         fc.set("arenas.spawnLocationInUse", arenaSpawnInUse);
         fc.set("arenas.invalidSpawnType", invalidSpawnType);
@@ -234,11 +237,11 @@ public class Messages {
     }
 
     public MSG getScoreboardFormat(String format) {
-        return new MSG(fc.getStringList("scoreboards."+format));
+        return new MSG(fc.getStringList("scoreboards." + format));
     }
 
     public MSG getSignFormat(String format) {
-        return new MSG(fc.getStringList("signs."+format));
+        return new MSG(fc.getStringList("signs." + format));
     }
 
     public MSG getClassicGameDescription() { return new MSG(classicGameDescription); }
@@ -433,7 +436,11 @@ public class Messages {
 
     public MSG getJoinGame() { return new MSG(joinGame); }
 
-    public class MSG {
+    public String getGameOptionVoted() {
+        return gameOptionVoted;
+    }
+
+    public static class MSG {
         List<String> message;
         CommandSender player;
 

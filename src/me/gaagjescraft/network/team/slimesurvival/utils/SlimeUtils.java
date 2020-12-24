@@ -84,6 +84,15 @@ public class SlimeUtils {
         return true;
     }
 
+    public static boolean isDouble(String string) {
+        try {
+            Double.parseDouble(string);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
     public static int isArenaValid(SlimeArena arena) {
         // 0 = valid
         // 1 = slime spawn is not set

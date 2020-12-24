@@ -38,6 +38,7 @@ playerParalysed: '&a%player% &ewas paralysed by &2%slime%'
 playerGotSlimed: '&a%player% &ewas turned into a slime by &2%slime%'
 playerGotTagged: '&a%player% &egot tagged by &2%slime% &eand is now the slime'
 releaseSlimesForSurvivors: '&aSlimes have been released'
+gameOptionVoted: '&e%player% &6voted for &a&l%type% mode &7(%votes% votes)'
 
 titles:
   startSlimeSelection: '&a&lSlime Selection\n&7Starting the slime selection...'
